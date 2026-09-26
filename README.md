@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/user-attachments/assets/7507bada-e64f-40e8-9817-b17a019c0b82">▶ Play Excel</a> ·
-  <a href="https://github.com/user-attachments/assets/aea696c7-7c1e-4d7e-afdd-811dd11d9a5d">▶ Play Docs</a> ·
-  <a href="https://github.com/user-attachments/assets/a3a3c93b-2f73-44b9-be67-8f40109d6c3b">▶ Play Slides</a>
+  <a href="#excel--ai-chart-21-seconds">▶ Play Excel</a> ·
+  <a href="#docs--edit-and-save-10-seconds">▶ Play Docs</a> ·
+  <a href="#slides--edit-and-save-8-seconds">▶ Play Slides</a>
 </p>
 
 <p align="center">
@@ -27,21 +27,27 @@
 
 ## Demo
 
-Play the videos directly below, or use the buttons at the top to open each video directly. GitHub's `.mp4` file-detail pages do not have a player; the copies in `docs/media` are source files.
+Play the videos directly below. These players load the English MP4 files committed in this repository; the links under each player open the video file directly.
 
 [▶ Excel](#excel--ai-chart-21-seconds) · [▶ Docs](#docs--edit-and-save-10-seconds) · [▶ Slides](#slides--edit-and-save-8-seconds)
 
 ### Excel — AI chart (21 seconds)
 
-https://github.com/user-attachments/assets/7507bada-e64f-40e8-9817-b17a019c0b82
+<video controls preload="metadata" width="100%" src="https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-excel-ai-chart-demo-en.mp4"></video>
+
+[Open video directly](https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-excel-ai-chart-demo-en.mp4)
 
 ### Docs — edit and save (10 seconds)
 
-https://github.com/user-attachments/assets/aea696c7-7c1e-4d7e-afdd-811dd11d9a5d
+<video controls preload="metadata" width="100%" src="https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-docs-editor-demo-en.mp4"></video>
+
+[Open video directly](https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-docs-editor-demo-en.mp4)
 
 ### Slides — edit and save (8 seconds)
 
-https://github.com/user-attachments/assets/a3a3c93b-2f73-44b9-be67-8f40109d6c3b
+<video controls preload="metadata" width="100%" src="https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-slides-editor-demo-en.mp4"></video>
+
+[Open video directly](https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-slides-editor-demo-en.mp4)
 
 The Excel video shows a real AI session: select `A4:B10`, request a column chart at `D4`, approve the writes, and save. AI waiting periods are shortened and marked on screen. The Docs and Slides videos show real **manual editor** changes and saved files; they do not portray those edits as AI-generated. All three clips use fictional samples, have English on-screen captions, and contain no user files or API credentials.
 

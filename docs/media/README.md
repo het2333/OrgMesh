@@ -1,19 +1,25 @@
 # Offira video demos
 
-Press play in the players below, or [watch all three demos in the repository README](../../README.md#demo). GitHub does not show a player on an individual `.mp4` file page; the files in this folder are source copies.
+Press play in the embedded players below, or use the links to open each video file directly. The players load the English MP4 files committed in this folder.
 
-[▶ Play Excel directly](https://github.com/user-attachments/assets/7507bada-e64f-40e8-9817-b17a019c0b82) · [▶ Play Docs directly](https://github.com/user-attachments/assets/aea696c7-7c1e-4d7e-afdd-811dd11d9a5d) · [▶ Play Slides directly](https://github.com/user-attachments/assets/a3a3c93b-2f73-44b9-be67-8f40109d6c3b)
+[▶ Excel](#excel--ai-chart-21-seconds) · [▶ Docs](#docs--edit-and-save-10-seconds) · [▶ Slides](#slides--edit-and-save-8-seconds)
 
 ## Excel — AI chart (21 seconds)
 
-https://github.com/user-attachments/assets/7507bada-e64f-40e8-9817-b17a019c0b82
+<video controls preload="metadata" width="100%" src="https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-excel-ai-chart-demo-en.mp4"></video>
+
+[Open video directly](https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-excel-ai-chart-demo-en.mp4)
 
 ## Docs — edit and save (10 seconds)
 
-https://github.com/user-attachments/assets/aea696c7-7c1e-4d7e-afdd-811dd11d9a5d
+<video controls preload="metadata" width="100%" src="https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-docs-editor-demo-en.mp4"></video>
+
+[Open video directly](https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-docs-editor-demo-en.mp4)
 
 ## Slides — edit and save (8 seconds)
 
-https://github.com/user-attachments/assets/a3a3c93b-2f73-44b9-be67-8f40109d6c3b
+<video controls preload="metadata" width="100%" src="https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-slides-editor-demo-en.mp4"></video>
+
+[Open video directly](https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-slides-editor-demo-en.mp4)
 
 The Excel clip shows a real AI chart workflow. The Docs and Slides clips show manual editing and saving.
