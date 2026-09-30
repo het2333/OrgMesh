@@ -1,0 +1,323 @@
+"use client";
+
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import {
+  Button,
+  LineItemButton,
+  Popover,
+  PopoverMenu,
+  useCreateModal,
+} from "@opal/components";
+import { noProp } from "@/lib/utils";
+import { cn } from "@opal/utils";
+import UserFilesModal from "@/sections/modals/UserFilesModal";
+import { ProjectFile, UserFileStatus } from "@/lib/projects/types";
+import { Hoverable } from "@opal/core";
+import { toast } from "@opal/layouts";
+import { useProjectsContext } from "@/lib/projects/providers";
+import Text from "@/refresh-components/texts/Text";
+import { MAX_FILES_TO_SHOW } from "@/lib/constants";
+import { isImageFile } from "@/lib/utils";
+import {
+  SvgExternalLink,
+  SvgFileText,
+  SvgImage,
+  SvgLoader,
+  SvgMoreHorizontal,
+  SvgUploadSquare,
+} from "@opal/icons";
+const getFileExtension = (fileName: string): string => {
+  const idx = fileName.lastIndexOf(".");
+  if (idx === -1) return "";
+  const ext = fileName.slice(idx + 1).toLowerCase();
+  if (ext === "txt") return "PLAINTEXT";
+  return ext.toUpperCase();
+};
+
+interface FileLineItemProps {
+  projectFile: ProjectFile;
+  onPickRecent: (file: ProjectFile) => void;
+  onFileClick: (file: ProjectFile) => void;
+}
+
+function FileLineItem({
+  projectFile,
+  onPickRecent,
+  onFileClick,
+}: FileLineItemProps) {
+  const t = useTranslations("common.filePicker");
+  const showLoader = useMemo(
+    () =>
+      String(projectFile.status) === UserFileStatus.PROCESSING ||
+      String(projectFile.status) === UserFileStatus.UPLOADING ||
+      String(projectFile.status) === UserFileStatus.DELETING,
+    [projectFile.status]
+  );
+
+  const disableActionButton = useMemo(
+    () =>
+      String(projectFile.status) === UserFileStatus.UPLOADING ||
+      String(projectFile.status) === UserFileStatus.DELETING,
+    [projectFile.status]
+  );
+
+  return (
+    <Hoverable.Root group="FileLineItem">
+      <LineItemButton
+        sizePreset="main-ui"
+        rounding={2}
+        key={projectFile.id}
+        onClick={noProp(() => onPickRecent(projectFile))}
+        icon={
+          showLoader
+            ? ({ className }) => (
+                <SvgLoader className={cn(className, "animate-spin")} />
+              )
+            : isImageFile(projectFile.name)
+              ? SvgImage
+              : SvgFileText
+        }
+        rightChildren={
+          <div className="h-4 flex flex-col justify-center">
+            <Hoverable.Item
+              group="FileLineItem"
+              variant="replace-on-hover"
+              resting={
+                <Text as="p" secondaryBody text03>
+                  {getFileExtension(projectFile.name)}
+                </Text>
+              }
+            >
+              <Button
+                icon={SvgExternalLink}
+                onClick={noProp(() => onFileClick(projectFile))}
+                tooltip={t("viewFileButton.tooltip")}
+                disabled={disableActionButton}
+                prominence="internal"
+                size="sm"
+              />
+            </Hoverable.Item>
+          </div>
+        }
+        title={projectFile.name}
+      />
+    </Hoverable.Root>
+  );
+}
+
+interface FilePickerPopoverContentsProps {
+  recentFiles: ProjectFile[];
+  onPickRecent: (file: ProjectFile) => void;
+  onFileClick: (file: ProjectFile) => void;
+  triggerUploadPicker: () => void;
+  openRecentFilesModal: () => void;
+}
+
+function FilePickerPopoverContents({
+  recentFiles,
+  onPickRecent,
+  onFileClick,
+  triggerUploadPicker,
+  openRecentFilesModal,
+}: FilePickerPopoverContentsProps) {
+  const t = useTranslations("common.filePicker");
+  // These are the "quick" files that we show. Essentially "speed dial", but for files.
+  // The rest of the files will be hidden behind the "All Recent Files" button, should there be more files left to show!
+  const hasFiles = recentFiles.length > 0;
+  const shouldShowMoreFilesButton = recentFiles.length > MAX_FILES_TO_SHOW;
+  const quickAccessFiles = recentFiles.slice(0, MAX_FILES_TO_SHOW);
+
+  return (
+    <PopoverMenu>
+      {[
+        // Action button to upload more files
+        <LineItemButton
+          sizePreset="main-ui"
+          rounding={2}
+          key="upload-files"
+          icon={SvgUploadSquare}
+          description={t("uploadFiles.description")}
+          onClick={triggerUploadPicker}
+          title={t("uploadFiles.title")}
+        />,
+
+        // Separator
+        null,
+
+        // Title
+        hasFiles && (
+          <div key="recent-files" className="pt-1">
+            <Text as="p" text02 secondaryBody className="py-1 px-3">
+              {t("recentFiles.title")}
+            </Text>
+          </div>
+        ),
+
+        // Quick access files
+        ...quickAccessFiles.map((projectFile) => (
+          <FileLineItem
+            key={projectFile.id}
+            projectFile={projectFile}
+            onPickRecent={onPickRecent}
+            onFileClick={onFileClick}
+          />
+        )),
+
+        // Rest of the files
+        shouldShowMoreFilesButton && (
+          <LineItemButton
+            sizePreset="main-ui"
+            rounding={2}
+            key="more-files"
+            icon={SvgMoreHorizontal}
+            onClick={openRecentFilesModal}
+            title={t("allRecentFilesButton.title")}
+          />
+        ),
+      ]}
+    </PopoverMenu>
+  );
+}
+
+export interface FilePickerPopoverProps {
+  onPickRecent?: (file: ProjectFile) => void;
+  onUnpickRecent?: (file: ProjectFile) => void;
+  onFileClick?: (file: ProjectFile) => void;
+  handleUploadChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  trigger?: React.ReactNode | ((open: boolean) => React.ReactNode);
+  selectedFileIds?: string[];
+}
+
+export default function FilePickerPopover({
+  onPickRecent,
+  onUnpickRecent,
+  onFileClick,
+  handleUploadChange,
+  trigger,
+  selectedFileIds,
+}: FilePickerPopoverProps) {
+  const t = useTranslations("common.filePicker");
+  const { allRecentFiles } = useProjectsContext();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const recentFilesModal = useCreateModal();
+  const [open, setOpen] = useState(false);
+  // Snapshot of recent files to avoid re-arranging when the modal is open
+  const [recentFilesSnapshot, setRecentFilesSnapshot] = useState<ProjectFile[]>(
+    []
+  );
+  const { deleteUserFile, setCurrentMessageFiles } = useProjectsContext();
+  const [deletedFileIds, setDeletedFileIds] = useState<string[]>([]);
+
+  const triggerUploadPicker = () => fileInputRef.current?.click();
+
+  useEffect(() => {
+    setRecentFilesSnapshot(
+      allRecentFiles.slice().filter((f) => !deletedFileIds.includes(f.id))
+    );
+  }, [allRecentFiles]);
+
+  const handleDeleteFile = (file: ProjectFile) => {
+    const lastStatus = file.status;
+    setRecentFilesSnapshot((prev) =>
+      prev.map((f) =>
+        f.id === file.id ? { ...f, status: UserFileStatus.DELETING } : f
+      )
+    );
+    deleteUserFile(file.id)
+      .then((result) => {
+        if (!result.has_associations) {
+          toast.success(t("toasts.deleteSuccess"));
+          setCurrentMessageFiles((prev) =>
+            prev.filter((f) => f.id !== file.id)
+          );
+          setDeletedFileIds((prev) => [...prev, file.id]);
+          setRecentFilesSnapshot((prev) => prev.filter((f) => f.id != file.id));
+        } else {
+          setRecentFilesSnapshot((prev) =>
+            prev.map((f) =>
+              f.id === file.id ? { ...f, status: lastStatus } : f
+            )
+          );
+          const projects = result.project_names.join(", ");
+          const assistants = result.assistant_names.join(", ");
+          const message =
+            projects && assistants
+              ? t("toasts.associatedBoth", { projects, assistants })
+              : projects
+                ? t("toasts.associatedProjects", { projects })
+                : t("toasts.associatedAssistants", { assistants });
+
+          toast.error(message);
+        }
+      })
+      .catch((error) => {
+        // Revert status and show error if the delete request fails
+        setRecentFilesSnapshot((prev) =>
+          prev.map((f) => (f.id === file.id ? { ...f, status: lastStatus } : f))
+        );
+        toast.error(t("toasts.deleteFailed"));
+        // Useful for debugging; safe in client components
+        console.error("Failed to delete file", error);
+      });
+  };
+
+  return (
+    <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        multiple
+        onChange={handleUploadChange}
+        accept={"*/*"}
+      />
+
+      <recentFilesModal.Provider>
+        <UserFilesModal
+          title={t("recentFiles.title")}
+          description={t("recentFilesModal.description")}
+          recentFiles={recentFilesSnapshot}
+          onPickRecent={(file) => {
+            onPickRecent?.(file);
+          }}
+          onUnpickRecent={(file) => {
+            onUnpickRecent?.(file);
+          }}
+          handleUploadChange={handleUploadChange}
+          onView={onFileClick}
+          selectedFileIds={selectedFileIds}
+          onDelete={handleDeleteFile}
+        />
+      </recentFilesModal.Provider>
+
+      <Popover open={open} onOpenChange={setOpen}>
+        <Popover.Trigger asChild>
+          {typeof trigger === "function" ? trigger(open) : trigger}
+        </Popover.Trigger>
+        <Popover.Content align="start" side="bottom" width="lg">
+          <FilePickerPopoverContents
+            recentFiles={recentFilesSnapshot}
+            onPickRecent={(file) => {
+              onPickRecent?.(file);
+              setOpen(false);
+            }}
+            onFileClick={(file) => {
+              onFileClick?.(file);
+              setOpen(false);
+            }}
+            triggerUploadPicker={() => {
+              triggerUploadPicker();
+              setOpen(false);
+            }}
+            openRecentFilesModal={() => {
+              recentFilesModal.toggle(true);
+              // Close the small popover when opening the dialog
+              setOpen(false);
+            }}
+          />
+        </Popover.Content>
+      </Popover>
+    </>
+  );
+}

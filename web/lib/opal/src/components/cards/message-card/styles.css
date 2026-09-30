@@ -1,0 +1,13 @@
+@reference "#reference.css";
+
+/* The surface (color, border, rounding, padding) lives on Card. This file
+   keeps only what Card cannot express: the stretch behavior of the old root
+   and the message layout. */
+
+.opal-message-card {
+  @apply w-full self-stretch;
+}
+
+.opal-message-card-layout {
+  @apply flex flex-col gap-1 w-full;
+}

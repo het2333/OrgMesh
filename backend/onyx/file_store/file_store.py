@@ -1,0 +1,738 @@
+import hashlib
+import tempfile
+import uuid
+from abc import ABC, abstractmethod
+from io import BytesIO
+from typing import IO, TYPE_CHECKING, Any, NotRequired, TypedDict, cast
+
+import puremagic
+from botocore.exceptions import ClientError
+from sqlalchemy.orm import Session
+
+from onyx.configs.app_configs import (
+    AWS_REGION_NAME,
+    S3_AWS_ACCESS_KEY_ID,
+    S3_AWS_SECRET_ACCESS_KEY,
+    S3_ENDPOINT_URL,
+    S3_FILE_STORE_BUCKET_NAME,
+    S3_FILE_STORE_PREFIX,
+    S3_GENERATE_LOCAL_CHECKSUM,
+    S3_VERIFY_SSL,
+)
+from onyx.configs.constants import FileOrigin
+from onyx.db.engine.sql_engine import (
+    get_session_with_current_tenant,
+    get_session_with_current_tenant_if_none,
+)
+from onyx.db.file_record import (
+    delete_filerecord_by_file_id,
+    get_filerecord_by_file_id,
+    get_filerecord_by_file_id_optional,
+    get_filerecord_by_prefix,
+    upsert_filerecord,
+)
+from onyx.db.models import FileRecord
+from onyx.db.models import FileRecord as FileStoreModel
+from onyx.file_store.s3_key_utils import generate_s3_key
+from onyx.utils.file import FileWithMimeType
+from onyx.utils.logger import setup_logger
+from shared_configs.contextvars import get_current_tenant_id
+
+if TYPE_CHECKING:
+    from mypy_boto3_s3 import S3Client
+
+    from onyx.file_store.azure_blob_file_store import AzureBlobBackedFileStore
+    from onyx.file_store.gcs_file_store import GCSBackedFileStore
+
+logger = setup_logger()
+
+
+# Persisted in file_record.file_size when the backing object is confirmed
+# missing, so listings stop re-probing the object store for it. Rendered as
+# "unknown" (None) in API responses.
+FILE_SIZE_MISSING_SENTINEL = -1
+
+
+def content_byte_size(file_content: object) -> int | None:
+    """Stored size in bytes of save_file content. str content is uploaded
+    UTF-8 encoded by every backend, so its size is the encoded length."""
+    if isinstance(file_content, (bytes, bytearray)):
+        return len(file_content)
+    if isinstance(file_content, str):
+        return len(file_content.encode("utf-8"))
+    return None
+
+
+class S3PutKwargs(TypedDict):
+    ChecksumSHA256: NotRequired[str]
+
+
+class FileStore(ABC):
+    """
+    An abstraction for storing files and large binary objects.
+    """
+
+    @abstractmethod
+    def initialize(self) -> None:
+        """
+        Should generally be called once before any other methods are called.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def has_file(
+        self,
+        file_id: str,
+        file_origin: FileOrigin,
+        file_type: str,
+    ) -> bool:
+        """
+        Check if a file record with the given origin and type exists.
+
+        Note: implementations check the metadata record in the database, not
+        the backing blob itself — content is assumed present when the record
+        exists.
+
+        Parameters:
+        - file_id: Unique ID of the file to check for
+        - file_origin: Origin of the file
+        - file_type: Type of the file
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def save_file(
+        self,
+        content: IO,
+        display_name: str | None,
+        file_origin: FileOrigin,
+        file_type: str,
+        file_metadata: dict[str, Any] | None = None,
+        file_id: str | None = None,
+    ) -> str:
+        """
+        Save a file to the blob store
+
+        Parameters:
+        - content: Contents of the file
+        - display_name: Display name of the file to save
+        - file_origin: Origin of the file
+        - file_type: Type of the file
+        - file_metadata: Additional metadata for the file
+        - file_id: Unique ID of the file to save. If not provided, a random UUID will be generated.
+                   It is generally NOT recommended to provide this.
+
+        Returns:
+            The unique ID of the file that was saved.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def read_file(
+        self, file_id: str, mode: str | None = None, use_tempfile: bool = False
+    ) -> IO[bytes]:
+        """
+        Read the content of a given file by the ID
+
+        Parameters:
+        - file_id: Unique ID of file to read
+        - mode: Mode to open the file (e.g. 'b' for binary)
+        - use_tempfile: Whether to use a temporary file to store the contents
+                        in order to avoid loading the entire file into memory
+
+        Returns:
+            Contents of the file and metadata dict
+        """
+
+    @abstractmethod
+    def read_file_record(self, file_id: str) -> FileStoreModel:
+        """
+        Read the file record by the ID
+        """
+
+    @abstractmethod
+    def get_file_size(
+        self, file_id: str, db_session: Session | None = None
+    ) -> int | None:
+        """
+        Get the size of a file in bytes.
+        Optionally provide a db_session for database access.
+        """
+
+    @abstractmethod
+    def delete_file(self, file_id: str, error_on_missing: bool = True) -> None:
+        """
+        Delete a file by its ID.
+
+        Parameters:
+        - file_id: ID of file to delete
+        - error_on_missing: If False, silently return when the file record
+          does not exist instead of raising.
+        """
+
+    @abstractmethod
+    def get_file_with_mime_type(self, file_id: str) -> FileWithMimeType | None:
+        """
+        Get the file + parse out the mime type.
+        """
+
+    @abstractmethod
+    def change_file_id(self, old_file_id: str, new_file_id: str) -> None:
+        """
+        Change the file ID of an existing file.
+
+        Parameters:
+        - old_file_id: Current file ID
+        - new_file_id: New file ID to assign
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def list_files_by_prefix(self, prefix: str) -> list[FileRecord]:
+        """
+        List all file IDs that start with the given prefix.
+        """
+
+
+class S3BackedFileStore(FileStore):
+    """Isn't necessarily S3, but is any S3-compatible storage (e.g. MinIO)"""
+
+    def __init__(
+        self,
+        bucket_name: str,
+        aws_access_key_id: str | None = None,
+        aws_secret_access_key: str | None = None,
+        aws_region_name: str | None = None,
+        s3_endpoint_url: str | None = None,
+        s3_prefix: str | None = None,
+        s3_verify_ssl: bool = True,
+    ) -> None:
+        self._s3_client: "S3Client | None" = None
+        self._bucket_name = bucket_name
+        self._aws_access_key_id = aws_access_key_id
+        self._aws_secret_access_key = aws_secret_access_key
+        self._aws_region_name = aws_region_name or "us-east-2"
+        self._s3_endpoint_url = s3_endpoint_url
+        self._s3_prefix = s3_prefix or "onyx-files"
+        self._s3_verify_ssl = s3_verify_ssl
+
+    def _get_s3_client(self) -> "S3Client":
+        """Initialize S3 client if not already done"""
+        if self._s3_client is None:
+            try:
+                # Imported here: boto3 costs ~16 MB and most workers never build an S3 client.
+                import boto3
+                from botocore.config import Config
+
+                client_kwargs: dict[str, Any] = {
+                    "service_name": "s3",
+                    "region_name": self._aws_region_name,
+                }
+
+                # Add endpoint URL if specified (for MinIO, etc.)
+                if self._s3_endpoint_url:
+                    client_kwargs["endpoint_url"] = self._s3_endpoint_url
+                    client_kwargs["config"] = Config(
+                        signature_version="s3v4",
+                        s3={"addressing_style": "path"},  # Required for MinIO
+                    )
+                    # Disable SSL verification if requested (for local development)
+                    if not self._s3_verify_ssl:
+                        import urllib3
+
+                        urllib3.disable_warnings(
+                            urllib3.exceptions.InsecureRequestWarning
+                        )
+                        client_kwargs["verify"] = False
+
+                if self._aws_access_key_id and self._aws_secret_access_key:
+                    # Use explicit credentials
+                    client_kwargs.update(
+                        {
+                            "aws_access_key_id": self._aws_access_key_id,
+                            "aws_secret_access_key": self._aws_secret_access_key,
+                        }
+                    )
+                    self._s3_client = boto3.client(**client_kwargs)
+                else:
+                    # Use IAM role or default credentials (not typically used with MinIO)
+                    self._s3_client = boto3.client(**client_kwargs)
+
+            except Exception as e:
+                logger.error("Failed to initialize S3 client: %s", e)
+                raise RuntimeError(f"Failed to initialize S3 client: {e}")
+
+        return self._s3_client
+
+    def _get_bucket_name(self) -> str:
+        """Get S3 bucket name from configuration"""
+        if not self._bucket_name:
+            raise RuntimeError("S3 bucket name is required for S3 file store")
+        return self._bucket_name
+
+    def _get_s3_key(self, file_name: str) -> str:
+        """Generate S3 key from file name with tenant ID prefix"""
+        tenant_id = get_current_tenant_id()
+
+        s3_key = generate_s3_key(
+            file_name=file_name,
+            prefix=self._s3_prefix,
+            tenant_id=tenant_id,
+            max_key_length=1024,
+        )
+
+        # Log if truncation occurred (when the key is exactly at the limit)
+        if len(s3_key) == 1024:
+            logger.info("File name was too long and was truncated: %s", file_name)
+
+        return s3_key
+
+    def initialize(self) -> None:
+        """Initialize the S3 file store by ensuring the bucket exists"""
+        s3_client = self._get_s3_client()
+        bucket_name = self._get_bucket_name()
+
+        # Check if bucket exists
+        try:
+            s3_client.head_bucket(Bucket=bucket_name)
+            logger.info("S3 bucket '%s' already exists", bucket_name)
+        except ClientError as e:
+            error_code = e.response["Error"]["Code"]
+            if error_code == "404":
+                # Bucket doesn't exist, create it
+                logger.info("Creating S3 bucket '%s'", bucket_name)
+
+                # For AWS S3, we need to handle region-specific bucket creation
+                region = (
+                    s3_client._client_config.region_name  # ty: ignore[unresolved-attribute]
+                    if hasattr(s3_client, "_client_config")
+                    else None
+                )
+
+                if region and region != "us-east-1":
+                    # For regions other than us-east-1, we need to specify LocationConstraint
+                    s3_client.create_bucket(
+                        Bucket=bucket_name,
+                        CreateBucketConfiguration={"LocationConstraint": region},
+                    )
+                else:
+                    # For us-east-1 or MinIO/other S3-compatible services
+                    s3_client.create_bucket(Bucket=bucket_name)
+
+                logger.info("Successfully created S3 bucket '%s'", bucket_name)
+            elif error_code == "403":
+                # Bucket exists but we don't have permission to access it
+                logger.warning(
+                    "S3 bucket '%s' exists but access is forbidden", bucket_name
+                )
+                raise RuntimeError(
+                    f"Access denied to S3 bucket '{bucket_name}'. Check credentials and permissions."
+                )
+            else:
+                # Some other error occurred
+                logger.error("Failed to check S3 bucket '%s': %s", bucket_name, e)
+                raise RuntimeError(f"Failed to check S3 bucket '{bucket_name}': {e}")
+
+    def has_file(
+        self,
+        file_id: str,
+        file_origin: FileOrigin,
+        file_type: str,
+        db_session: Session | None = None,
+    ) -> bool:
+        with get_session_with_current_tenant_if_none(db_session) as db_session:
+            file_record = get_filerecord_by_file_id_optional(
+                file_id=file_id, db_session=db_session
+            )
+        return (
+            file_record is not None
+            and file_record.file_origin == file_origin
+            and file_record.file_type == file_type
+        )
+
+    def save_file(
+        self,
+        content: IO,
+        display_name: str | None,
+        file_origin: FileOrigin,
+        file_type: str,
+        file_metadata: dict[str, Any] | None = None,
+        file_id: str | None = None,
+        db_session: Session | None = None,
+    ) -> str:
+        if file_id is None:
+            file_id = str(uuid.uuid4())
+
+        s3_client = self._get_s3_client()
+        bucket_name = self._get_bucket_name()
+        s3_key = self._get_s3_key(file_id)
+
+        hash256 = ""
+        sha256_hash = hashlib.sha256()
+        kwargs: S3PutKwargs = {}
+
+        # FIX: Optimize checksum generation to avoid creating extra copies in memory
+        # Read content from IO object
+        if hasattr(content, "read"):
+            file_content = content.read()
+            if S3_GENERATE_LOCAL_CHECKSUM:
+                # FIX: Don't convert to string first (creates unnecessary copy)
+                # Work directly with bytes
+                if isinstance(file_content, bytes):
+                    sha256_hash.update(file_content)
+                else:
+                    sha256_hash.update(str(file_content).encode())
+                hash256 = sha256_hash.hexdigest()
+                kwargs["ChecksumSHA256"] = hash256
+            if hasattr(content, "seek"):
+                content.seek(0)  # Reset position for potential re-reads
+        else:
+            file_content = content
+
+        # Upload to S3
+
+        s3_client.put_object(
+            Bucket=bucket_name,
+            Key=s3_key,
+            Body=file_content,
+            ContentType=file_type,
+            **kwargs,
+        )
+
+        with get_session_with_current_tenant_if_none(db_session) as db_session:
+            # Save metadata to database
+            upsert_filerecord(
+                file_id=file_id,
+                display_name=display_name or file_id,
+                file_origin=file_origin,
+                file_type=file_type,
+                bucket_name=bucket_name,
+                object_key=s3_key,
+                db_session=db_session,
+                file_metadata=file_metadata,
+                file_size=content_byte_size(file_content),
+            )
+            db_session.commit()
+
+        return file_id
+
+    def read_file(
+        self,
+        file_id: str,
+        mode: str | None = None,  # noqa: ARG002
+        use_tempfile: bool = False,
+        db_session: Session | None = None,
+    ) -> IO[bytes]:
+        with get_session_with_current_tenant_if_none(db_session) as db_session:
+            file_record = get_filerecord_by_file_id(
+                file_id=file_id, db_session=db_session
+            )
+
+        s3_client = self._get_s3_client()
+        try:
+            response = s3_client.get_object(
+                Bucket=file_record.bucket_name, Key=file_record.object_key
+            )
+        except ClientError:
+            logger.error("Failed to read file %s from S3", file_id)
+            raise
+
+        # FIX: Stream file content instead of loading entire file into memory
+        # This prevents OOM issues with large files (500MB+ PDFs, etc.)
+        if use_tempfile:
+            # Stream directly to temp file to avoid holding entire file in memory
+            temp_file = tempfile.NamedTemporaryFile(mode="w+b", delete=True)
+            # Stream in 8MB chunks to reduce memory footprint
+            for chunk in response["Body"].iter_chunks(chunk_size=8 * 1024 * 1024):
+                temp_file.write(chunk)
+            temp_file.seek(0)
+            return temp_file
+        else:
+            # For BytesIO, we still need to read into memory (legacy behavior)
+            # but at least we're not creating duplicate copies
+            file_content = response["Body"].read()
+            return BytesIO(file_content)
+
+    def read_file_record(
+        self, file_id: str, db_session: Session | None = None
+    ) -> FileStoreModel:
+        with get_session_with_current_tenant_if_none(db_session) as db_session:
+            file_record = get_filerecord_by_file_id(
+                file_id=file_id, db_session=db_session
+            )
+        return file_record
+
+    def get_file_size(
+        self, file_id: str, db_session: Session | None = None
+    ) -> int | None:
+        """
+        Get the size of a file in bytes by querying S3 metadata.
+        """
+        try:
+            with get_session_with_current_tenant_if_none(db_session) as db_session:
+                file_record = get_filerecord_by_file_id(
+                    file_id=file_id, db_session=db_session
+                )
+
+            s3_client = self._get_s3_client()
+            response = s3_client.head_object(
+                Bucket=file_record.bucket_name, Key=file_record.object_key
+            )
+            return response.get("ContentLength")
+        except ClientError as e:
+            if e.response.get("Error", {}).get("Code") in (
+                "404",
+                "NotFound",
+                "NoSuchKey",
+            ):
+                raise FileNotFoundError(
+                    f"Object for file {file_id} does not exist"
+                ) from e
+            logger.warning("Error getting file size for %s: %s", file_id, e)
+            return None
+        except Exception as e:
+            logger.warning("Error getting file size for %s: %s", file_id, e)
+            return None
+
+    def delete_file(
+        self,
+        file_id: str,
+        error_on_missing: bool = True,
+        db_session: Session | None = None,
+    ) -> None:
+        with get_session_with_current_tenant_if_none(db_session) as db_session:
+            try:
+                file_record = get_filerecord_by_file_id_optional(
+                    file_id=file_id, db_session=db_session
+                )
+                if file_record is None:
+                    if error_on_missing:
+                        raise RuntimeError(
+                            f"File by id {file_id} does not exist or was deleted"
+                        )
+                    return
+                if not file_record.bucket_name:
+                    logger.error(
+                        "File record %s with key %s has no bucket name, cannot delete from filestore",
+                        file_id,
+                        file_record.object_key,
+                    )
+                    delete_filerecord_by_file_id(file_id=file_id, db_session=db_session)
+                    db_session.commit()
+                    return
+
+                # Delete from external storage
+                s3_client = self._get_s3_client()
+                try:
+                    s3_client.delete_object(
+                        Bucket=file_record.bucket_name, Key=file_record.object_key
+                    )
+                except ClientError as e:
+                    # If the object doesn't exist in file store, treat it as success
+                    # since the end goal (object not existing) is achieved
+                    if e.response.get("Error", {}).get("Code") == "NoSuchKey":
+                        logger.warning(
+                            "delete_file: File %s not found in file store (key: %s), cleaning up database record.",
+                            file_id,
+                            file_record.object_key,
+                        )
+                    else:
+                        raise
+
+                # Delete metadata from database
+                delete_filerecord_by_file_id(file_id=file_id, db_session=db_session)
+
+                db_session.commit()
+
+            except Exception:
+                db_session.rollback()
+                raise
+
+    def change_file_id(
+        self, old_file_id: str, new_file_id: str, db_session: Session | None = None
+    ) -> None:
+        """Rename a file by repointing its DB record at the existing object.
+
+        The object is not moved — only file_id changes — and reads resolve via
+        the stored object_key, so they still find it. The object keeps its
+        original key, so a file_id must not be reused for a new save_file after
+        it has been renamed (the new write would overwrite the renamed object).
+        """
+        if old_file_id == new_file_id:
+            return
+        with get_session_with_current_tenant_if_none(db_session) as db_session:
+            try:
+                old_file_record = get_filerecord_by_file_id(
+                    file_id=old_file_id, db_session=db_session
+                )
+                file_metadata = cast(
+                    dict[Any, Any] | None, old_file_record.file_metadata
+                )
+
+                # Reuse the old record's bucket/object_key — the object stays put.
+                upsert_filerecord(
+                    file_id=new_file_id,
+                    display_name=old_file_record.display_name,
+                    file_origin=old_file_record.file_origin,
+                    file_type=old_file_record.file_type,
+                    bucket_name=old_file_record.bucket_name,
+                    object_key=old_file_record.object_key,
+                    db_session=db_session,
+                    file_metadata=file_metadata,
+                    file_size=old_file_record.file_size,
+                )
+
+                delete_filerecord_by_file_id(file_id=old_file_id, db_session=db_session)
+
+                db_session.commit()
+
+            except Exception as e:
+                db_session.rollback()
+                logger.exception(
+                    "Failed to change file ID from %s to %s: %s",
+                    old_file_id,
+                    new_file_id,
+                    e,
+                )
+                raise
+
+    def get_file_with_mime_type(self, file_id: str) -> FileWithMimeType | None:
+        mime_type: str = "application/octet-stream"
+        try:
+            file_io = self.read_file(file_id, mode="b")
+            file_content = file_io.read()
+            matches = puremagic.magic_string(file_content)
+            if matches:
+                mime_type = cast(str, matches[0].mime_type)
+            return FileWithMimeType(data=file_content, mime_type=mime_type)
+        except Exception:
+            return None
+
+    def list_files_by_prefix(self, prefix: str) -> list[FileRecord]:
+        """
+        List all file IDs that start with the given prefix.
+        """
+        with get_session_with_current_tenant() as db_session:
+            file_records = get_filerecord_by_prefix(
+                prefix=prefix, db_session=db_session
+            )
+        return file_records
+
+
+def get_s3_file_store() -> S3BackedFileStore:
+    """
+    Returns the S3 file store implementation.
+    """
+
+    # Get bucket name - this is required
+    bucket_name = S3_FILE_STORE_BUCKET_NAME
+    if not bucket_name:
+        raise RuntimeError(
+            "S3_FILE_STORE_BUCKET_NAME configuration is required for S3 file store"
+        )
+
+    return S3BackedFileStore(
+        bucket_name=bucket_name,
+        aws_access_key_id=S3_AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=S3_AWS_SECRET_ACCESS_KEY,
+        aws_region_name=AWS_REGION_NAME,
+        s3_endpoint_url=S3_ENDPOINT_URL,
+        s3_prefix=S3_FILE_STORE_PREFIX,
+        s3_verify_ssl=S3_VERIFY_SSL,
+    )
+
+
+def get_gcs_file_store() -> "GCSBackedFileStore":
+    """Returns the GCS file store implementation."""
+    from onyx.configs.app_configs import (
+        GCS_FILE_STORE_BUCKET_NAME,
+        GCS_FILE_STORE_PREFIX,
+        GCS_PROJECT_ID,
+        GCS_SERVICE_ACCOUNT_KEY_JSON,
+        GCS_SERVICE_ACCOUNT_KEY_PATH,
+    )
+    from onyx.file_store.gcs_file_store import GCSBackedFileStore
+
+    bucket_name = GCS_FILE_STORE_BUCKET_NAME
+    if not bucket_name:
+        raise RuntimeError("GCS_FILE_STORE_BUCKET_NAME is required for GCS file store")
+
+    return GCSBackedFileStore(
+        bucket_name=bucket_name,
+        gcs_prefix=GCS_FILE_STORE_PREFIX,
+        project_id=GCS_PROJECT_ID,
+        service_account_key_path=GCS_SERVICE_ACCOUNT_KEY_PATH,
+        service_account_key_json=GCS_SERVICE_ACCOUNT_KEY_JSON,
+    )
+
+
+def get_azure_file_store() -> "AzureBlobBackedFileStore":
+    """Returns the Azure Blob Storage file store implementation."""
+    from onyx.configs.app_configs import (
+        AZURE_FILE_STORE_CONTAINER_NAME,
+        AZURE_FILE_STORE_PREFIX,
+        AZURE_STORAGE_ACCOUNT_KEY,
+        AZURE_STORAGE_ACCOUNT_NAME,
+        AZURE_STORAGE_ACCOUNT_URL,
+        AZURE_STORAGE_CONNECTION_STRING,
+    )
+    from onyx.file_store.azure_blob_file_store import AzureBlobBackedFileStore
+
+    container_name = AZURE_FILE_STORE_CONTAINER_NAME
+    if not container_name:
+        raise RuntimeError(
+            "AZURE_FILE_STORE_CONTAINER_NAME is required for Azure file store"
+        )
+
+    return AzureBlobBackedFileStore(
+        container_name=container_name,
+        azure_prefix=AZURE_FILE_STORE_PREFIX,
+        account_name=AZURE_STORAGE_ACCOUNT_NAME,
+        account_url=AZURE_STORAGE_ACCOUNT_URL,
+        connection_string=AZURE_STORAGE_CONNECTION_STRING,
+        account_key=AZURE_STORAGE_ACCOUNT_KEY,
+    )
+
+
+def get_default_file_store() -> FileStore:
+    """
+    Returns the configured file store implementation based on FILE_STORE_BACKEND.
+
+    When FILE_STORE_BACKEND=postgres:
+    - Files are stored in PostgreSQL using Large Objects.
+    - No external storage service (S3/MinIO) is required.
+
+    When FILE_STORE_BACKEND=s3 (default):
+    - Supports AWS S3, MinIO, and other S3-compatible storage.
+    - Configuration via environment variables:
+      - S3_FILE_STORE_BUCKET_NAME, S3_ENDPOINT_URL, S3_AWS_ACCESS_KEY_ID, etc.
+
+    When FILE_STORE_BACKEND=gcs:
+    - Uses Google Cloud Storage with ADC/Workload Identity or service account keys.
+    - Configuration via environment variables:
+      - GCS_FILE_STORE_BUCKET_NAME, GCS_PROJECT_ID, GCS_SERVICE_ACCOUNT_KEY_PATH, etc.
+
+    When FILE_STORE_BACKEND=azure:
+    - Uses Azure Blob Storage with connection string, account key, or
+      DefaultAzureCredential (AKS Workload Identity / managed identity).
+    - Configuration via environment variables:
+      - AZURE_FILE_STORE_CONTAINER_NAME, AZURE_STORAGE_ACCOUNT_NAME,
+        AZURE_STORAGE_CONNECTION_STRING, AZURE_STORAGE_ACCOUNT_KEY, etc.
+    """
+    from onyx.configs.app_configs import FILE_STORE_BACKEND
+    from onyx.configs.constants import FileStoreType
+
+    backend = FileStoreType(FILE_STORE_BACKEND)
+
+    if backend == FileStoreType.POSTGRES:
+        from onyx.file_store.postgres_file_store import PostgresBackedFileStore
+
+        return PostgresBackedFileStore()
+
+    if backend == FileStoreType.GCS:
+        return get_gcs_file_store()
+
+    if backend == FileStoreType.AZURE:
+        return get_azure_file_store()
+
+    return get_s3_file_store()

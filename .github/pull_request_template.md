@@ -1,27 +1,12 @@
-## Summary
+## Description
 
-- What changed?
-- Why is this change needed?
+<!--- Provide a brief description of the changes in this PR --->
 
-## Related issue
+## How Has This Been Tested?
 
-Closes #
+<!--- Describe the tests you ran to verify your changes --->
 
-## Validation
+## Additional Options
 
-- [ ] `npm run format:check`
-- [ ] `npm run lint`
-- [ ] `npm run typecheck`
-- [ ] `npm test`
-
-List any checks not run and explain why:
-
-## Screenshots or recordings
-
-Include before/after evidence for visible changes, or write "Not applicable."
-
-## Contributor checklist
-
-- [ ] The change is focused and does not include unrelated reformatting or refactoring.
-- [ ] User-facing strings use the existing i18n resources.
-- [ ] File open/save changes include an appropriate round-trip or fidelity test.
+- [ ] [Optional] Please cherry-pick this PR to the latest release version.
+- [ ] [Optional] Override Linear Check

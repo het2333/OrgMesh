@@ -1,0 +1,10 @@
+OrgMesh Presenton integration
+
+Upstream: https://github.com/presenton/presenton
+Revision: 2dcbde772ce46687c5c220f4e1e4886bdfe91cc9
+License: Apache-2.0 (see LICENSE.upstream)
+
+OrgMesh modifies the pinned source at build time through prepare_backend.py,
+prepare_frontend.py, prepare_templates.py, and the backend/frontend overlays.
+These changes provide native identity, model access, gateway paths, and Chinese UI.
+The upstream source is fetched during the build and is not vendored here.

@@ -1,0 +1,18 @@
+# Single-owner local access. Enable only after bootstrap_orgmesh.py succeeds.
+services:
+  api_server:
+    environment:
+      - CORS_ALLOWED_ORIGIN=http://localhost:3090,http://127.0.0.1:3090
+  nginx:
+    volumes:
+      - ../../.orgmesh-local/access.inc:/etc/nginx/orgmesh-local-access.inc:ro
+    command: >
+      /bin/sh -c "rm -f /etc/nginx/conf.d/default.conf
+      && cp -a /nginx-templates/. /etc/nginx/conf.d/
+      && sed 's/\r$//' /etc/nginx/conf.d/run-nginx.sh > /tmp/run-nginx.sh
+      && chmod +x /tmp/run-nginx.sh
+      && /tmp/run-nginx.sh app.conf.orgmesh.template"
+  web_server:
+    environment:
+      - INTERNAL_URL=http://nginx/api
+      - ORGMESH_LOCAL_ACCESS=true

@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "max_expansions": 8,
+  "glossary": [
+    {"term": "SLA", "expansions": ["服务等级协议"]},
+    {"term": "OKR", "expansions": ["目标与关键结果"]},
+    {"term": "差旅报销", "expansions": ["expense reimbursement"]}
+  ]
+}

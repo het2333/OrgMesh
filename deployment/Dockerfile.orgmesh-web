@@ -1,0 +1,11 @@
+# The source uses the same frozen dependencies as this official ARM64 runtime.
+# Add the platform-independent Next.js output after building it on the host.
+FROM onyxdotapp/onyx-web-server:v4.8.1
+USER root
+# Replace old build symlinks while keeping the Linux runtime dependencies.
+RUN ["node", "-e", "require('node:fs').rmSync('/app/.next', {recursive: true, force: true})"]
+USER node
+COPY --chown=node:node server.js /app/server.js
+COPY --chown=node:node next/ /app/.next/
+COPY --chown=node:node static/ /app/.next/static/
+ENV NEXT_PUBLIC_DISABLE_LOGOUT=false

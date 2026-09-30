@@ -1,0 +1,24 @@
+# Local settings. The upstream compose files stay unchanged.
+services:
+  nginx:
+    ports: !override
+      - "127.0.0.1:3090:80"
+
+  api_server:
+    mem_limit: 1536m
+
+  web_server:
+    mem_limit: 512m
+
+  relational_db:
+    mem_limit: 512m
+
+  code-interpreter:
+    mem_limit: 512m
+
+# The host has used all automatic address pools.
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: "172.16.249.0/24"

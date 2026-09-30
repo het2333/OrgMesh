@@ -1,0 +1,82 @@
+# Complete search with one shared CPU model server for this development host.
+services:
+  api_server:
+    image: ${ONYX_BACKEND_IMAGE:-orgmesh-backend:local}
+    environment:
+      LICENSE_ENFORCEMENT_ENABLED: "false"
+      ENABLE_PAID_ENTERPRISE_EDITION_FEATURES: "false"
+      DISABLE_VECTOR_DB: "false"
+      FILE_STORE_BACKEND: postgres
+      CACHE_BACKEND: redis
+      AUTH_BACKEND: postgres
+      ORGMESH_LOCAL_ACCESS: "${ORGMESH_LOCAL_ACCESS:-false}"
+      OPENSEARCH_TEXT_ANALYZER: cjk
+      OPENSEARCH_INDEX_NUM_REPLICAS: "0"
+      PDF_OCR_ENABLED: "true"
+      LITELLM_LOCAL_MODEL_COST_MAP: "True"
+      INDEXING_MODEL_SERVER_HOST: inference_model_server
+    depends_on:
+      opensearch:
+        condition: service_healthy
+      inference_model_server:
+        condition: service_healthy
+  background:
+    image: ${ONYX_BACKEND_IMAGE:-orgmesh-backend:local}
+    command: /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.orgmesh.conf
+    mem_limit: 4g
+    cpus: 3
+    environment:
+      LICENSE_ENFORCEMENT_ENABLED: "false"
+      ENABLE_PAID_ENTERPRISE_EDITION_FEATURES: "false"
+      DISABLE_VECTOR_DB: "false"
+      FILE_STORE_BACKEND: postgres
+      CACHE_BACKEND: redis
+      AUTH_BACKEND: postgres
+      OPENSEARCH_TEXT_ANALYZER: cjk
+      OPENSEARCH_INDEX_NUM_REPLICAS: "0"
+      PDF_OCR_ENABLED: "true"
+      LITELLM_LOCAL_MODEL_COST_MAP: "True"
+      INDEXING_MODEL_SERVER_HOST: inference_model_server
+      CELERY_WORKER_PRIMARY_CONCURRENCY: "2"
+      CELERY_WORKER_PRIMARY_POOL_OVERFLOW: "2"
+      CELERY_WORKER_LIGHT_CONCURRENCY: "2"
+      CELERY_WORKER_LIGHT_PREFETCH_MULTIPLIER: "1"
+      CELERY_WORKER_HEAVY_CONCURRENCY: "1"
+      CELERY_WORKER_DOCFETCHING_CONCURRENCY: "1"
+      CELERY_WORKER_DOCPROCESSING_CONCURRENCY: "1"
+      CELERY_WORKER_USER_FILE_PROCESSING_CONCURRENCY: "1"
+    depends_on:
+      indexing_model_server:
+        condition: service_started
+        required: false
+      inference_model_server:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+  inference_model_server:
+    mem_limit: 2g
+    cpus: 2
+    environment:
+      MIN_THREADS_ML_MODELS: "1"
+      OMP_NUM_THREADS: "2"
+      HF_HUB_DISABLE_TELEMETRY: "1"
+  indexing_model_server:
+    profiles: [separate-indexer]
+  opensearch:
+    mem_limit: 1536m
+    cpus: 2
+    environment:
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          curl -ksSf -u "admin:$${OPENSEARCH_INITIAL_ADMIN_PASSWORD}" https://localhost:9200/_cluster/health
+          | grep -Eq '"status"[[:space:]]*:[[:space:]]*"(green|yellow)"'
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+  cache:
+    mem_limit: 256m
+    command: redis-server --save "" --appendonly no --maxmemory 192mb --maxmemory-policy noeviction

@@ -1,0 +1,8 @@
+FROM onyxdotapp/onyx-backend:v4.8.1
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-chi-sim tesseract-ocr-eng && rm -rf /var/lib/apt/lists/*
+COPY backend/onyx /app/onyx
+COPY backend/shared_configs /app/shared_configs
+COPY backend/alembic /app/alembic
+COPY deployment/supervisord.orgmesh.conf /etc/supervisor/conf.d/supervisord.orgmesh.conf
+ENV PDF_OCR_ENABLED=true LITELLM_LOCAL_MODEL_COST_MAP=True

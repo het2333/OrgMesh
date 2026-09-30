@@ -1,0 +1,7 @@
+**
+!backend/
+!backend/onyx/**
+!backend/shared_configs/**
+!backend/alembic/**
+!deployment/
+!deployment/supervisord.orgmesh.conf

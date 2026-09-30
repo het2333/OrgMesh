@@ -1,0 +1,16 @@
+{
+  "queries": [
+    {"id": "q01", "query": "差旅报销需要哪些材料", "relevant_document_ids": ["finance"]},
+    {"id": "q02", "query": "交通费和住宿费每天限额", "relevant_document_ids": ["finance"]},
+    {"id": "q03", "query": "expense reimbursement审核多久", "relevant_document_ids": ["finance"]},
+    {"id": "q04", "query": "带薪年假提前多久申请", "relevant_document_ids": ["leave"]},
+    {"id": "q05", "query": "SLA一级故障响应时间", "relevant_document_ids": ["sla"]},
+    {"id": "q06", "query": "客户服务可用性目标", "relevant_document_ids": ["sla"]},
+    {"id": "q07", "query": "离职员工何时撤销访问令牌", "relevant_document_ids": ["security"]},
+    {"id": "q08", "query": "OKR关键结果数量", "relevant_document_ids": ["okr"]},
+    {"id": "q09", "query": "研发正式发布要谁确认", "relevant_document_ids": ["rd"]},
+    {"id": "q10", "query": "超过五万元的采购谁审批", "relevant_document_ids": ["procurement"]},
+    {"id": "q11", "query": "新员工申请业务系统权限的前置条件", "relevant_document_ids": ["onboarding"]},
+    {"id": "q12", "query": "系统访问权限审核和入职培训", "relevant_document_ids": ["security", "onboarding"]}
+  ]
+}

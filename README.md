@@ -1,125 +1,42 @@
-<p align="center">
-  <img src="apps/web/public/offira-mark.svg" alt="Offira" width="72" height="72">
-</p>
+# OrgMesh 企业知识工作台
 
-<h1 align="center">Offira</h1>
+OrgMesh 面向企业私有部署，提供中文知识搜索、AI 问答、Agent 和演示文稿工具。
 
-<p align="center">
-  <strong>Open Office files on your computer. Edit with AI.</strong><br>
-  A local-first web workspace with DeepSeek Harness integration.
-</p>
+基于 [Onyx Community v4.8.1](https://github.com/onyx-dot-app/onyx)，集成 [Presenton](https://github.com/presenton/presenton)。
 
-<p align="center">
-  <a href="#excel--ai-chart-21-seconds">▶ Play Excel</a> ·
-  <a href="#docs--edit-and-save-10-seconds">▶ Play Docs</a> ·
-  <a href="#slides--edit-and-save-8-seconds">▶ Play Slides</a>
-</p>
+## 主要功能
 
-<p align="center">
-  <a href="#features">Features</a> ·
-  <a href="#demo">Demo</a> ·
-  <a href="#quick-start">Quick start</a> ·
-  <a href="#how-it-works">How it works</a> ·
-  <a href="#project-status">Project status</a>
-</p>
+- **知识搜索与问答**：关键词与向量混合检索、来源引用、中文 PDF OCR 和企业词表。
+- **飞书接入**：文档、知识库、云空间、表格同步，以及员工目录和源权限检查。
+- **Agent 工作台**：制度问答、员工入职和项目周报模板，可绑定企业知识库。
+- **模型接入**：DeepSeek、通义千问和 OpenAI 兼容服务，可检查流式输出和工具调用。
+- **演示文稿**：中文创建、参考文档上传、作品列表、编辑与保存、PPTX/PDF 导出接口。
+- **私有部署**：独立账号、邮箱验证、TLS 和凭据加密存储。
 
-> **Development preview:** Offira currently runs as a local web service on your computer. There is no downloadable installer, hosted demo, cloud sync, or collaboration service yet.
+## 部署
 
-## Demo
+技术栈为 Python、FastAPI、Next.js、PostgreSQL、OpenSearch、Redis 和 Celery。
 
-Play the English demos directly below. GitHub renders these uploaded demo clips as inline players; the links under each player open the MP4 copies committed in this repository.
+部署前需要构建 OrgMesh 镜像，生成专用配置，并准备模型和企业连接器凭据。
 
-[▶ Excel](#excel--ai-chart-21-seconds) · [▶ Docs](#docs--edit-and-save-10-seconds) · [▶ Slides](#slides--edit-and-save-8-seconds)
+- [构建、部署与配置说明](README.orgmesh.md)
+- [上游 Onyx 说明](README.onyx.md)
+- [Presenton 固定版本](integrations/presenton/upstream.lock.json)
 
-### Excel — AI chart (21 seconds)
+仓库不包含本机账号、API Key、数据库、数据卷、模型权重或运行中的企业配置。
 
-https://github.com/user-attachments/assets/7507bada-e64f-40e8-9817-b17a019c0b82
+## 当前验证范围
 
-[Open video directly](https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-excel-ai-chart-demo-en.mp4)
+P1 已用合成中文资料验证搜索、Agent 回答、引用及权限链路。企业语料、SSO 和并发需要另行验收。
 
-### Docs — edit and save (10 seconds)
+Presenton 已验证生成、编辑、保存与后台 PPTX 导出。最终页面下载、PDF 导出和短文本 AI 编辑验收仍待完成。
 
-https://github.com/user-attachments/assets/aea696c7-7c1e-4d7e-afdd-811dd11d9a5d
+原有 Onyx 工作流保存在 `.github/upstream-workflows/`。其中包含上游发布和云服务任务，需适配后再启用。
 
-[Open video directly](https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-docs-editor-demo-en.mp4)
+## 许可证与来源
 
-### Slides — edit and save (8 seconds)
+保留 Onyx 的版权和许可证。社区代码使用 MIT；`ee` 目录保留 Onyx Enterprise License，详见 [LICENSE](LICENSE)。
 
-https://github.com/user-attachments/assets/a3a3c93b-2f73-44b9-be67-8f40109d6c3b
+Presenton 使用 Apache-2.0，固定版本、修改覆盖文件和许可证位于 [integrations/presenton](integrations/presenton)。
 
-[Open video directly](https://raw.githubusercontent.com/het2333/Offira/main/docs/media/offira-slides-editor-demo-en.mp4)
-
-The Excel video shows a real AI session: select `A4:B10`, request a column chart at `D4`, approve the writes, and save. AI waiting periods are shortened and marked on screen. The Docs and Slides videos show real **manual editor** changes and saved files; they do not portray those edits as AI-generated. All three clips use fictional samples, have English on-screen captions, and contain no user files or API credentials.
-
-## Features
-
-- **One workspace for your files.** Open documents, spreadsheets, presentations, PDFs, Markdown, and HTML from a shared home screen with file tabs and editor switching.
-- **AI alongside your work.** Docs, Sheets, and Slides have DeepSeek Harness conversations, model selection, and native, document-aware tools. Editor operations are not routed through an MCP bridge.
-- **Your choice of model provider.** Add API keys in **Settings → AI Models**, then choose an available model in the chat panel. Keys are stored by the local Harness credential service and are not echoed to the browser. Keys supplied through the startup environment remain read-only.
-- **Review before writing.** Changes require approval. The Local Host binds each action to a file and session; when a write outcome is unknown, it checks the result instead of automatically submitting the operation again.
-- **Local-first, with a clear network boundary.** Files and the web service run on your computer. Requests to an online model are sent to the provider you select; “local web” does not mean that every byte stays on-device.
-
-| Editor              | File types             | Current AI integration                                      |
-| ------------------- | ---------------------- | ----------------------------------------------------------- |
-| Docs                | `.docx`                | Native document tools and Harness sidebar                   |
-| Sheets              | `.xlsx`                | Native spreadsheet tools and Harness sidebar                |
-| Slides              | `.pptx`                | Native presentation tools and Harness sidebar               |
-| PDF, Markdown, HTML | `.pdf`, `.md`, `.html` | Local web editors; feature coverage is still being verified |
-
-## Quick start
-
-Use Node.js **24 LTS** (the verified version), npm **10+**, and Rust/Cargo for the XLSX engine. `package.json` allows Node.js 22.12 or newer, but the complete integration has not been verified on every newer major version. The first build may take a while.
-
-```bash
-git clone https://github.com/het2333/Offira.git
-cd Offira
-npm ci
-npm run build:web
-npm run start:web -- "/absolute/path/to/example.xlsx"
-```
-
-You can open several existing files at startup:
-
-```bash
-npm run start:web -- "/absolute/path/to/document.docx" "/absolute/path/to/workbook.xlsx" "/absolute/path/to/presentation.pptx"
-```
-
-Open the `bootstrapUrl` printed in the terminal. In the current local-access mode, it is a `http://127.0.0.1:<port>/` address; the port may change between runs. Do not expose the service to the public internet, and do not open `apps/web/index.html` directly with `file://`. At least one existing file path is required. Supported startup extensions are `.docx`, `.xlsx`, `.pptx`, `.pdf`, `.md`, and `.html`.
-
-In **Settings → AI Models**, configure a key for DeepSeek, OpenAI, Anthropic, OpenRouter, Gemini, or another supported provider, then select a model in the editor chat panel. Existing API keys in a legacy `providers.env` file are imported into the local Harness credential store on the next start; the original file is not deleted automatically. Never commit real API keys.
-
-## How it works
-
-```text
-Browser: Offira home screen and file editors
-             │ HTTP / WebSocket (local loopback only)
-             ▼
-Local Host: file access, session binding, approvals, persistence, recovery
-             │ private process communication
-             ▼
-DeepSeek Harness: agent runtime, model providers, native Office tools
-```
-
-The editors expose semantic operation DSLs to native Harness tools. Tool results are summarized for the agent instead of exposing low-level engine objects. This provides practical editing coverage without maintaining hundreds of fragile one-to-one API wrappers.
-
-Repository layout:
-
-- `apps/web` — local web shell.
-- `apps/local-host` — loopback HTTP/WebSocket service and file-access boundary.
-- `packages/nexusdesk-runtime-host` — Harness runtime and Office tool integration.
-- `packages/nexusdesk-shell-ui` — shared home screen, settings, and file tabs.
-- `apps/docs`, `apps/sheets`, `apps/slides` — the three primary Office editors.
-
-## Project status
-
-Current work focuses on reliable local editing and AI workflows. Desktop installers, cloud sync, real-time collaboration, and one-to-one tools for every low-level editor API are **not** delivered features of this preview.
-
-Validation commands:
-
-```bash
-npm run typecheck
-npm test
-npm run test:e2e:local-web
-```
-
-Some full-suite tests depend on local fonts, LibreOffice, native build tools, or DNS behavior. Check individual failures rather than treating an environment-dependent result as proof that every editing workflow passed or failed. See the [current verification notes (Chinese)](docs/harness-office-panel-verification.md).
+OrgMesh 与 Glean 没有隶属关系。

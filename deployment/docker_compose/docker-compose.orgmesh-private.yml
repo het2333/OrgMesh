@@ -1,0 +1,71 @@
+# Individual authenticated users over TLS. Uses a separate configuration and data.
+services:
+  api_server:
+    env_file: !override
+      - path: .env.private
+        required: true
+    environment:
+      ORGMESH_LOCAL_ACCESS: "false"
+      AUTH_TYPE: basic
+      REQUIRE_EMAIL_VERIFICATION: "true"
+    mem_limit: 1536m
+  background:
+    env_file: !override
+      - path: .env.private
+        required: true
+  web_server:
+    env_file: !override
+      - path: .env.private
+        required: true
+    environment:
+      INTERNAL_URL: http://api_server:8080
+      ORGMESH_LOCAL_ACCESS: "false"
+    mem_limit: 512m
+  relational_db:
+    env_file: !override
+      - path: .env.private
+        required: true
+    mem_limit: 512m
+  inference_model_server:
+    env_file: !override
+      - path: .env.private
+        required: true
+  indexing_model_server:
+    env_file: !override
+      - path: .env.private
+        required: true
+  cache:
+    env_file: !override
+      - path: .env.private
+        required: true
+  minio:
+    env_file: !override
+      - path: .env.private
+        required: true
+  code-interpreter:
+    env_file: !override
+      - path: .env.private
+        required: true
+  nginx:
+    env_file: !override
+      - path: .env.private
+        required: true
+    environment:
+      DOMAIN: ${ORGMESH_PRIVATE_HOST:?Run init_orgmesh_private.py first}
+    ports: !override
+      - "${ORGMESH_PRIVATE_BIND:-127.0.0.1}:${ORGMESH_PRIVATE_PORT:-3443}:443"
+    volumes:
+      - ${ORGMESH_TLS_DIRECTORY:?Set the TLS certificate directory}:/etc/nginx/tls:ro
+    command: >
+      /bin/sh -c "rm -f /etc/nginx/conf.d/default.conf
+      && cp -a /nginx-templates/. /etc/nginx/conf.d/
+      && sed 's/\r$//' /etc/nginx/conf.d/run-nginx.sh > /tmp/run-nginx.sh
+      && chmod +x /tmp/run-nginx.sh
+      && /tmp/run-nginx.sh app.conf.orgmesh-private.template"
+    healthcheck:
+      test: [CMD-SHELL, "wget --no-check-certificate -q --spider https://127.0.0.1/nginx-health"]
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${ORGMESH_PRIVATE_SUBNET:-172.16.248.0/24}

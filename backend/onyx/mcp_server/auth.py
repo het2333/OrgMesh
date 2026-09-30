@@ -1,0 +1,50 @@
+"""Authentication helpers for the Onyx MCP server."""
+
+from typing import Optional
+
+from fastmcp.server.auth.auth import AccessToken, TokenVerifier
+
+from onyx.mcp_server.utils import get_http_client
+from onyx.server.metrics.mcp_server import MCPAuthResult, record_mcp_auth_result
+from onyx.utils.logger import setup_logger
+from onyx.utils.variable_functionality import build_api_server_url_for_http_requests
+
+logger = setup_logger()
+
+
+class OnyxTokenVerifier(TokenVerifier):
+    """Validates bearer tokens by delegating to the API server."""
+
+    async def verify_token(self, token: str) -> Optional[AccessToken]:
+        """Call API /me to verify the token, return minimal AccessToken on success."""
+        try:
+            response = await get_http_client().get(
+                f"{build_api_server_url_for_http_requests(respect_env_override_if_set=True)}/me",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+        except Exception as exc:
+            record_mcp_auth_result(MCPAuthResult.ERROR)
+            logger.error(
+                "MCP server failed to reach API /me for authentication: %s",
+                exc,
+                exc_info=True,
+            )
+            return None
+
+        if response.status_code != 200:
+            record_mcp_auth_result(MCPAuthResult.REJECTED)
+            logger.warning(
+                "API server rejected MCP auth token with status %s",
+                response.status_code,
+            )
+            return None
+
+        record_mcp_auth_result(MCPAuthResult.SUCCESS)
+        return AccessToken(
+            token=token,
+            client_id="mcp",
+            scopes=["mcp:use"],
+            expires_at=None,
+            resource=None,
+            claims={},
+        )

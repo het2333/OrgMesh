@@ -1,0 +1,6 @@
+{
+  "repository": "https://github.com/presenton/presenton.git",
+  "revision": "2dcbde772ce46687c5c220f4e1e4886bdfe91cc9",
+  "image": "ghcr.io/presenton/presenton@sha256:ddf0d1f26397764856acdf94489dbbae5a2c0644a280723fd80bc7a80de338ba",
+  "prefix": "/presenton"
+}

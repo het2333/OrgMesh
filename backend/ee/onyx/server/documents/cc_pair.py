@@ -1,0 +1,187 @@
+from datetime import datetime
+
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from ee.onyx.background.celery.tasks.doc_permission_syncing.tasks import (
+    try_creating_permissions_sync_task,
+)
+from ee.onyx.background.celery.tasks.external_group_syncing.tasks import (
+    try_creating_external_group_sync_task,
+)
+from onyx.auth.permissions import require_permission
+from onyx.background.celery.versioned_apps.client import app as client_app
+from onyx.db.connector_credential_pair import (
+    get_connector_credential_pair_from_id_for_user,
+)
+from onyx.db.engine.sql_engine import get_session
+from onyx.db.enums import Permission
+from onyx.db.models import User
+from onyx.error_handling.error_codes import OnyxErrorCode
+from onyx.error_handling.exceptions import OnyxError
+from onyx.redis.redis_connector import RedisConnector
+from onyx.redis.redis_pool import get_redis_client
+from onyx.server.models import StatusResponse
+from onyx.utils.logger import setup_logger
+from shared_configs.contextvars import get_current_tenant_id
+
+logger = setup_logger()
+router = APIRouter(prefix="/manage")
+
+
+@router.get("/admin/cc-pair/{cc_pair_id}/sync-permissions")
+def get_cc_pair_latest_sync(
+    cc_pair_id: int,
+    user: User = Depends(
+        require_permission(Permission.READ_CONNECTORS, allow_scope=True)
+    ),
+    db_session: Session = Depends(get_session),
+) -> datetime | None:
+    cc_pair = get_connector_credential_pair_from_id_for_user(
+        cc_pair_id=cc_pair_id,
+        db_session=db_session,
+        user=user,
+        get_editable=False,
+    )
+    if not cc_pair:
+        raise OnyxError(
+            OnyxErrorCode.INSUFFICIENT_PERMISSIONS,
+            "CC Pair not found for current user's permissions",
+        )
+
+    return cc_pair.last_time_perm_sync
+
+
+@router.post("/admin/cc-pair/{cc_pair_id}/sync-permissions")
+def sync_cc_pair(
+    cc_pair_id: int,
+    user: User = Depends(
+        require_permission(Permission.MANAGE_CONNECTORS, allow_scope=True)
+    ),
+    db_session: Session = Depends(get_session),
+) -> StatusResponse[None]:
+    """Triggers permissions sync on a particular cc_pair immediately"""
+    tenant_id = get_current_tenant_id()
+
+    cc_pair = get_connector_credential_pair_from_id_for_user(
+        cc_pair_id=cc_pair_id,
+        db_session=db_session,
+        user=user,
+        get_editable=True,
+    )
+    if not cc_pair:
+        raise OnyxError(
+            OnyxErrorCode.INSUFFICIENT_PERMISSIONS,
+            "Connection not found for current user's permissions",
+        )
+
+    r = get_redis_client()
+
+    redis_connector = RedisConnector(tenant_id, cc_pair_id)
+    if redis_connector.permissions.fenced:
+        raise OnyxError(
+            OnyxErrorCode.CONFLICT,
+            "Permissions sync task already in progress.",
+        )
+
+    logger.info(
+        "Permissions sync cc_pair=%s connector_id=%s credential_id=%s %s connector.",
+        cc_pair_id,
+        cc_pair.connector_id,
+        cc_pair.credential_id,
+        cc_pair.connector.name,
+    )
+    payload_id = try_creating_permissions_sync_task(
+        client_app, cc_pair_id, r, tenant_id
+    )
+    if not payload_id:
+        raise OnyxError(
+            OnyxErrorCode.INTERNAL_ERROR,
+            "Permissions sync task creation failed.",
+        )
+
+    logger.info("Permissions sync queued: cc_pair=%s id=%s", cc_pair_id, payload_id)
+
+    return StatusResponse(
+        success=True,
+        message="Successfully created the permissions sync task.",
+    )
+
+
+@router.get("/admin/cc-pair/{cc_pair_id}/sync-groups")
+def get_cc_pair_latest_group_sync(
+    cc_pair_id: int,
+    user: User = Depends(
+        require_permission(Permission.READ_CONNECTORS, allow_scope=True)
+    ),
+    db_session: Session = Depends(get_session),
+) -> datetime | None:
+    cc_pair = get_connector_credential_pair_from_id_for_user(
+        cc_pair_id=cc_pair_id,
+        db_session=db_session,
+        user=user,
+        get_editable=False,
+    )
+    if not cc_pair:
+        raise OnyxError(
+            OnyxErrorCode.INSUFFICIENT_PERMISSIONS,
+            "CC Pair not found for current user's permissions",
+        )
+
+    return cc_pair.last_time_external_group_sync
+
+
+@router.post("/admin/cc-pair/{cc_pair_id}/sync-groups")
+def sync_cc_pair_groups(
+    cc_pair_id: int,
+    user: User = Depends(
+        require_permission(Permission.MANAGE_CONNECTORS, allow_scope=True)
+    ),
+    db_session: Session = Depends(get_session),
+) -> StatusResponse[None]:
+    """Triggers group sync on a particular cc_pair immediately"""
+    tenant_id = get_current_tenant_id()
+
+    cc_pair = get_connector_credential_pair_from_id_for_user(
+        cc_pair_id=cc_pair_id,
+        db_session=db_session,
+        user=user,
+        get_editable=True,
+    )
+    if not cc_pair:
+        raise OnyxError(
+            OnyxErrorCode.INSUFFICIENT_PERMISSIONS,
+            "Connection not found for current user's permissions",
+        )
+
+    r = get_redis_client()
+
+    redis_connector = RedisConnector(tenant_id, cc_pair_id)
+    if redis_connector.external_group_sync.fenced:
+        raise OnyxError(
+            OnyxErrorCode.CONFLICT,
+            "External group sync task already in progress.",
+        )
+
+    logger.info(
+        "External group sync cc_pair=%s connector_id=%s credential_id=%s %s connector.",
+        cc_pair_id,
+        cc_pair.connector_id,
+        cc_pair.credential_id,
+        cc_pair.connector.name,
+    )
+    payload_id = try_creating_external_group_sync_task(
+        client_app, cc_pair_id, r, tenant_id
+    )
+    if not payload_id:
+        raise OnyxError(
+            OnyxErrorCode.INTERNAL_ERROR,
+            "External group sync task creation failed.",
+        )
+
+    logger.info("External group sync queued: cc_pair=%s id=%s", cc_pair_id, payload_id)
+
+    return StatusResponse(
+        success=True,
+        message="Successfully created the external group sync task.",
+    )

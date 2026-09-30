@@ -1,0 +1,37 @@
+# Private presentation engine. Native auth and model relay stay in api_server.
+services:
+  api_server:
+    environment:
+      ORGMESH_PRESENTON_URL: http://presenton
+      ORGMESH_PRESENTON_SECRET: ${ORGMESH_PRESENTON_SECRET:?Run deployment/enable_orgmesh_presenton.py first}
+  presenton:
+    image: orgmesh-presenton:local
+    restart: unless-stopped
+    mem_limit: 3g
+    cpus: 2
+    expose: ["80"]
+    volumes:
+      - presenton_data:/app_data
+    environment:
+      ORGMESH_PRESENTON_SECRET: ${ORGMESH_PRESENTON_SECRET:?Run deployment/enable_orgmesh_presenton.py first}
+      ORGMESH_PRESENTON_RELAY_URL: http://api_server:8080/orgmesh/presenton/llm/v1
+      LLM: custom
+      CUSTOM_LLM_URL: http://api_server:8080/orgmesh/presenton/llm/v1
+      CUSTOM_LLM_API_KEY: orgmesh-scoped-relay
+      CUSTOM_MODEL: orgmesh-default
+      CAN_CHANGE_KEYS: "false"
+      DISABLE_AUTH: "false"
+      DISABLE_IMAGE_GENERATION: "true"
+      DISABLE_ANONYMOUS_TRACKING: "true"
+      PRESENTON_COMMUNITY_ENABLED: "false"
+      NEXT_PUBLIC_URL: http://127.0.0.1:3000/presenton
+      NEXT_TELEMETRY_DISABLED: "1"
+      PRESENTON_EMBEDDED: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1/api/v1/auth/status >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+volumes:
+  presenton_data:

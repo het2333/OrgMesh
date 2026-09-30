@@ -1,0 +1,478 @@
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends, HTTPException, Response
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session
+
+from onyx.auth.permissions import require_permission
+from onyx.db.engine.sql_engine import get_session
+from onyx.db.enums import Permission
+from onyx.db.models import InternetContentProvider, InternetSearchProvider, User
+from onyx.db.web_search import (
+    deactivate_web_content_provider,
+    deactivate_web_search_provider,
+    delete_web_content_provider,
+    delete_web_search_provider,
+    fetch_web_content_provider_by_name,
+    fetch_web_content_provider_by_type,
+    fetch_web_content_providers,
+    fetch_web_search_provider_by_name,
+    fetch_web_search_provider_by_type,
+    fetch_web_search_providers,
+    set_active_web_content_provider,
+    set_active_web_search_provider,
+    upsert_web_content_provider,
+    upsert_web_search_provider,
+)
+from onyx.server.manage.web_search.models import (
+    WebContentProviderTestRequest,
+    WebContentProviderUpsertRequest,
+    WebContentProviderView,
+    WebSearchProviderTestRequest,
+    WebSearchProviderUpsertRequest,
+    WebSearchProviderView,
+)
+from onyx.tools.tool_implementations.open_url.utils import (
+    filter_web_contents_with_no_title_or_content,
+)
+from onyx.tools.tool_implementations.web_search.models import WebContentProviderConfig
+from onyx.tools.tool_implementations.web_search.providers import (
+    build_content_provider_from_config,
+    build_search_provider_from_config,
+    provider_requires_api_key,
+)
+from onyx.utils.logger import setup_logger
+from shared_configs.configs import MULTI_TENANT
+from shared_configs.enums import WebContentProviderType, WebSearchProviderType
+
+logger = setup_logger()
+
+admin_router = APIRouter(prefix="/admin/web-search")
+
+# Providers whose API key is shared between the search and content sides: a key
+# entered on one side seeds the other (see the upsert endpoints below). Each
+# entry is (provider_type_on_this_side, display_name, provider_type_other_side).
+_SEARCH_TO_CONTENT_SYNC: list[
+    tuple[WebSearchProviderType, str, WebContentProviderType]
+] = [
+    (WebSearchProviderType.EXA, "Exa", WebContentProviderType.EXA),
+    (WebSearchProviderType.TAVILY, "Tavily", WebContentProviderType.TAVILY),
+]
+_CONTENT_TO_SEARCH_SYNC: list[
+    tuple[WebContentProviderType, str, WebSearchProviderType]
+] = [
+    (WebContentProviderType.EXA, "Exa", WebSearchProviderType.EXA),
+    (WebContentProviderType.TAVILY, "Tavily", WebSearchProviderType.TAVILY),
+]
+
+
+@admin_router.get("/search-providers", response_model=list[WebSearchProviderView])
+def list_search_providers(
+    _: User = Depends(require_permission(Permission.FULL_ADMIN_PANEL_ACCESS)),
+    db_session: Session = Depends(get_session),
+) -> list[WebSearchProviderView]:
+    providers = fetch_web_search_providers(db_session)
+    return [
+        WebSearchProviderView(
+            id=provider.id,
+            name=provider.name,
+            provider_type=WebSearchProviderType(provider.provider_type),
+            is_active=provider.is_active,
+            config=provider.config or {},
+            masked_api_key=(
+                provider.api_key.get_value(apply_mask=True)
+                if provider.api_key
+                else None
+            ),
+        )
+        for provider in providers
+    ]
+
+
+@admin_router.post("/search-providers", response_model=WebSearchProviderView)
+def upsert_search_provider_endpoint(
+    request: WebSearchProviderUpsertRequest,
+    _: User = Depends(require_permission(Permission.FULL_ADMIN_PANEL_ACCESS)),
+    db_session: Session = Depends(get_session),
+) -> WebSearchProviderView:
+    existing_by_name = fetch_web_search_provider_by_name(request.name, db_session)
+    if (
+        existing_by_name
+        and request.id is not None
+        and existing_by_name.id != request.id
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail=f"A search provider named '{request.name}' already exists.",
+        )
+
+    provider = upsert_web_search_provider(
+        provider_id=request.id,
+        name=request.name,
+        provider_type=request.provider_type,
+        api_key=request.api_key,
+        api_key_changed=request.api_key_changed,
+        config=request.config,
+        activate=request.activate,
+        db_session=db_session,
+    )
+
+    # Sync API key from search provider to content provider (Exa / Tavily)
+    if request.api_key_changed and request.api_key:
+        for search_type, name, content_type in _SEARCH_TO_CONTENT_SYNC:
+            if request.provider_type == search_type:
+                stmt = (
+                    insert(InternetContentProvider)
+                    .values(
+                        name=name,
+                        provider_type=content_type.value,
+                        api_key=request.api_key,
+                        is_active=False,
+                    )
+                    .on_conflict_do_update(
+                        index_elements=["name"],
+                        set_={"api_key": request.api_key},
+                    )
+                )
+                db_session.execute(stmt)
+                db_session.flush()
+                break
+
+    db_session.commit()
+    return WebSearchProviderView(
+        id=provider.id,
+        name=provider.name,
+        provider_type=WebSearchProviderType(provider.provider_type),
+        is_active=provider.is_active,
+        config=provider.config or {},
+        masked_api_key=(
+            provider.api_key.get_value(apply_mask=True) if provider.api_key else None
+        ),
+    )
+
+
+@admin_router.delete(
+    "/search-providers/{provider_id}", status_code=204, response_class=Response
+)
+def delete_search_provider(
+    provider_id: int,
+    _: User = Depends(require_permission(Permission.FULL_ADMIN_PANEL_ACCESS)),
+    db_session: Session = Depends(get_session),
+) -> Response:
+    delete_web_search_provider(provider_id, db_session)
+    return Response(status_code=204)
+
+
+@admin_router.post("/search-providers/{provider_id}/activate")
+def activate_search_provider(
+    provider_id: int,
+    _: User = Depends(require_permission(Permission.FULL_ADMIN_PANEL_ACCESS)),
+    db_session: Session = Depends(get_session),
+) -> WebSearchProviderView:
+    provider = set_active_web_search_provider(
+        provider_id=provider_id, db_session=db_session
+    )
+    db_session.commit()
+    return WebSearchProviderView(
+        id=provider.id,
+        name=provider.name,
+        provider_type=WebSearchProviderType(provider.provider_type),
+        is_active=provider.is_active,
+        config=provider.config or {},
+        masked_api_key=(
+            provider.api_key.get_value(apply_mask=True) if provider.api_key else None
+        ),
+    )
+
+
+@admin_router.post("/search-providers/{provider_id}/deactivate")
+def deactivate_search_provider(
+    provider_id: int,
+    _: User = Depends(require_permission(Permission.FULL_ADMIN_PANEL_ACCESS)),
+    db_session: Session = Depends(get_session),
+) -> dict[str, str]:
+    deactivate_web_search_provider(provider_id=provider_id, db_session=db_session)
+    db_session.commit()
+    return {"status": "ok"}
+
+
+@admin_router.post("/search-providers/test")
+def test_search_provider(
+    request: WebSearchProviderTestRequest,
+    _: User = Depends(require_permission(Permission.FULL_ADMIN_PANEL_ACCESS)),
+    db_session: Session = Depends(get_session),
+) -> dict[str, str]:
+    requires_key = provider_requires_api_key(request.provider_type)
+
+    # Determine which API key to use
+    api_key = request.api_key
+    if request.use_stored_key and requires_key:
+        existing_provider = fetch_web_search_provider_by_type(
+            request.provider_type, db_session
+        )
+        if existing_provider is None or not existing_provider.api_key:
+            raise HTTPException(
+                status_code=400,
+                detail="No stored API key found for this provider type.",
+            )
+        api_key = existing_provider.api_key.get_value(apply_mask=False)
+
+    if requires_key and not api_key:
+        raise HTTPException(
+            status_code=400,
+            detail="API key is required. Either provide api_key or set use_stored_key to true.",
+        )
+
+    try:
+        provider = build_search_provider_from_config(
+            provider_type=request.provider_type,
+            api_key=api_key,
+            config=request.config or {},
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    if provider is None:
+        raise HTTPException(
+            status_code=400, detail="Unable to build provider configuration."
+        )
+
+    # Run the API client's test_connection method to ensure the connection is valid.
+    try:
+        return provider.test_connection()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@admin_router.get("/content-providers", response_model=list[WebContentProviderView])
+def list_content_providers(
+    _: User = Depends(require_permission(Permission.FULL_ADMIN_PANEL_ACCESS)),
+    db_session: Session = Depends(get_session),
+) -> list[WebContentProviderView]:
+    providers = fetch_web_content_providers(db_session)
+    return [
+        WebContentProviderView(
+            id=provider.id,
+            name=provider.name,
+            provider_type=WebContentProviderType(provider.provider_type),
+            is_active=provider.is_active,
+            config=provider.config or WebContentProviderConfig(),
+            masked_api_key=(
+                provider.api_key.get_value(apply_mask=True)
+                if provider.api_key
+                else None
+            ),
+        )
+        for provider in providers
+    ]
+
+
+@admin_router.post("/content-providers", response_model=WebContentProviderView)
+def upsert_content_provider_endpoint(
+    request: WebContentProviderUpsertRequest,
+    _: User = Depends(require_permission(Permission.FULL_ADMIN_PANEL_ACCESS)),
+    db_session: Session = Depends(get_session),
+) -> WebContentProviderView:
+    existing_by_name = fetch_web_content_provider_by_name(request.name, db_session)
+    if (
+        existing_by_name
+        and request.id is not None
+        and existing_by_name.id != request.id
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail=f"A content provider named '{request.name}' already exists.",
+        )
+
+    provider = upsert_web_content_provider(
+        provider_id=request.id,
+        name=request.name,
+        provider_type=request.provider_type,
+        api_key=request.api_key,
+        api_key_changed=request.api_key_changed,
+        config=request.config,
+        activate=request.activate,
+        db_session=db_session,
+    )
+
+    # Sync API key from content provider to search provider (Exa / Tavily)
+    if request.api_key_changed and request.api_key:
+        for content_type, name, search_type in _CONTENT_TO_SEARCH_SYNC:
+            if request.provider_type == content_type:
+                stmt = (
+                    insert(InternetSearchProvider)
+                    .values(
+                        name=name,
+                        provider_type=search_type.value,
+                        api_key=request.api_key,
+                        is_active=False,
+                    )
+                    .on_conflict_do_update(
+                        index_elements=["name"],
+                        set_={"api_key": request.api_key},
+                    )
+                )
+                db_session.execute(stmt)
+                db_session.flush()
+                break
+
+    db_session.commit()
+    return WebContentProviderView(
+        id=provider.id,
+        name=provider.name,
+        provider_type=WebContentProviderType(provider.provider_type),
+        is_active=provider.is_active,
+        config=provider.config or WebContentProviderConfig(),
+        masked_api_key=(
+            provider.api_key.get_value(apply_mask=True) if provider.api_key else None
+        ),
+    )
+
+
+@admin_router.delete(
+    "/content-providers/{provider_id}", status_code=204, response_class=Response
+)
+def delete_content_provider(
+    provider_id: int,
+    _: User = Depends(require_permission(Permission.FULL_ADMIN_PANEL_ACCESS)),
+    db_session: Session = Depends(get_session),
+) -> Response:
+    delete_web_content_provider(provider_id, db_session)
+    return Response(status_code=204)
+
+
+@admin_router.post("/content-providers/{provider_id}/activate")
+def activate_content_provider(
+    provider_id: int,
+    _: User = Depends(require_permission(Permission.FULL_ADMIN_PANEL_ACCESS)),
+    db_session: Session = Depends(get_session),
+) -> WebContentProviderView:
+    provider = set_active_web_content_provider(
+        provider_id=provider_id, db_session=db_session
+    )
+    db_session.commit()
+    return WebContentProviderView(
+        id=provider.id,
+        name=provider.name,
+        provider_type=WebContentProviderType(provider.provider_type),
+        is_active=provider.is_active,
+        config=provider.config or WebContentProviderConfig(),
+        masked_api_key=(
+            provider.api_key.get_value(apply_mask=True) if provider.api_key else None
+        ),
+    )
+
+
+@admin_router.post("/content-providers/reset-default")
+def reset_content_provider_default(
+    _: User = Depends(require_permission(Permission.FULL_ADMIN_PANEL_ACCESS)),
+    db_session: Session = Depends(get_session),
+) -> dict[str, str]:
+    providers = fetch_web_content_providers(db_session)
+    active_ids = [provider.id for provider in providers if provider.is_active]
+
+    for provider_id in active_ids:
+        deactivate_web_content_provider(provider_id=provider_id, db_session=db_session)
+        db_session.commit()
+
+    return {"status": "ok"}
+
+
+@admin_router.post("/content-providers/{provider_id}/deactivate")
+def deactivate_content_provider(
+    provider_id: int,
+    _: User = Depends(require_permission(Permission.FULL_ADMIN_PANEL_ACCESS)),
+    db_session: Session = Depends(get_session),
+) -> dict[str, str]:
+    deactivate_web_content_provider(provider_id=provider_id, db_session=db_session)
+    db_session.commit()
+    return {"status": "ok"}
+
+
+@admin_router.post("/content-providers/test")
+def test_content_provider(
+    request: WebContentProviderTestRequest,
+    _: User = Depends(require_permission(Permission.FULL_ADMIN_PANEL_ACCESS)),
+    db_session: Session = Depends(get_session),
+) -> dict[str, str]:
+    # Determine which API key to use
+    api_key = request.api_key
+    if request.use_stored_key:
+        existing_provider = fetch_web_content_provider_by_type(
+            request.provider_type, db_session
+        )
+        if existing_provider is None or not existing_provider.api_key:
+            raise HTTPException(
+                status_code=400,
+                detail="No stored API key found for this provider type.",
+            )
+        if MULTI_TENANT:
+            stored_base_url = (
+                existing_provider.config.base_url if existing_provider.config else None
+            )
+            request_base_url = request.config.base_url
+            if request_base_url != stored_base_url:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Base URL cannot differ from stored provider when using stored API key",
+                )
+
+        api_key = existing_provider.api_key.get_value(apply_mask=False)
+
+    if not api_key:
+        raise HTTPException(
+            status_code=400,
+            detail="API key is required. Either provide api_key or set use_stored_key to true.",
+        )
+
+    try:
+        provider = build_content_provider_from_config(
+            provider_type=request.provider_type,
+            api_key=api_key,
+            config=request.config,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    if provider is None:
+        raise HTTPException(
+            status_code=400, detail="Unable to build provider configuration."
+        )
+
+    # Actually test the API key by making a real content fetch call
+    try:
+        test_url = "https://example.com"
+        test_results = filter_web_contents_with_no_title_or_content(
+            list(provider.contents([test_url]))
+        )
+        if not test_results or not any(
+            result.scrape_successful for result in test_results
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="API key validation failed: content fetch returned no results.",
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        if (
+            "api" in error_msg.lower()
+            or "key" in error_msg.lower()
+            or "auth" in error_msg.lower()
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid API key: {error_msg}",
+            ) from e
+        raise HTTPException(
+            status_code=400,
+            detail=f"API key validation failed: {error_msg}",
+        ) from e
+
+    logger.info(
+        "Web content provider test succeeded for %s.", request.provider_type.value
+    )
+    return {"status": "ok"}

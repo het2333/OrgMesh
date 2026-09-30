@@ -1,0 +1,256 @@
+import time
+from collections.abc import Generator
+from datetime import datetime, timezone
+from typing import Any
+
+from office365.graph_client import GraphClient
+from office365.runtime.queries.client_query import ClientQuery
+from office365.teams.channels.channel import Channel, ConversationMember
+
+from onyx.access.models import ExternalAccess
+from onyx.connectors.interfaces import SecondsSinceUnixEpoch
+from onyx.connectors.microsoft_utils.graph_client import (
+    GRAPH_API_MAX_RETRIES,
+    GRAPH_API_RETRYABLE_STATUSES,
+    backoff_seconds,
+    sleep_and_retry,
+)
+from onyx.connectors.models import BasicExpertInfo
+from onyx.connectors.teams.models import Message
+from onyx.utils.logger import setup_logger
+
+logger = setup_logger()
+
+
+_PUBLIC_MEMBERSHIP_TYPE = "standard"  # public teams channel
+
+
+def execute_query_with_retry(
+    query: ClientQuery,
+    method_name: str,
+    max_retries: int = GRAPH_API_MAX_RETRIES,
+) -> Any:
+    """Teams' retry policy for ``office365`` SDK queries: the wide Graph status
+    set and more attempts than ``sleep_and_retry`` defaults to. Non-retryable statuses
+    (401/403/404, a malformed OData filter 400) and exhausted retries re-raise
+    for the caller to handle.
+    """
+    return sleep_and_retry(
+        query,
+        method_name,
+        max_retries=max_retries,
+        retryable_statuses=GRAPH_API_RETRYABLE_STATUSES,
+    )
+
+
+def _sanitize_message_user_display_name(value: dict) -> dict:
+    try:
+        from_obj = value.get("from")
+        if isinstance(from_obj, dict):
+            user_obj = from_obj.get("user")
+            if isinstance(user_obj, dict) and user_obj.get("displayName") is None:
+                value = dict(value)
+                from_obj = dict(from_obj)
+                user_obj = dict(user_obj)
+                user_obj["displayName"] = "Unknown User"
+                from_obj["user"] = user_obj
+                value["from"] = from_obj
+    except (AttributeError, TypeError, KeyError):
+        pass
+    return value
+
+
+def _retry(
+    graph_client: GraphClient,
+    request_url: str,
+) -> dict:
+    MAX_RETRIES = 10
+    retry_number = 0
+
+    while retry_number < MAX_RETRIES:
+        response = graph_client.execute_request_direct(request_url)
+        if response.ok:
+            json = response.json()
+            if not isinstance(json, dict):
+                raise RuntimeError(f"Expected a JSON object, instead got {json=}")
+
+            return json
+
+        # Transient Graph errors (rate limits + 5xx gateway/server hiccups) are
+        # retried with backoff; any other status is surfaced immediately.
+        if response.status_code in GRAPH_API_RETRYABLE_STATUSES:
+            cooldown = backoff_seconds(
+                attempt=retry_number,
+                retry_after=response.headers.get("Retry-After"),
+            )
+            retry_number += 1
+            # On the final permitted attempt there's nothing left to retry, so
+            # don't sleep just to raise — surface the failure immediately.
+            if retry_number >= MAX_RETRIES:
+                break
+            logger.warning(
+                "Retryable Graph error %s on %s (attempt %s/%s); "
+                "sleeping %.1fs before retry.",
+                response.status_code,
+                request_url,
+                retry_number,
+                MAX_RETRIES,
+                cooldown,
+            )
+            time.sleep(cooldown)
+
+            continue
+
+        response.raise_for_status()
+
+    raise RuntimeError(
+        f"Max number of retries for hitting {request_url=} exceeded; unable to fetch data"
+    )
+
+
+def _get_next_url(
+    graph_client: GraphClient,
+    json_response: dict,
+) -> str | None:
+    next_url = json_response.get("@odata.nextLink")
+
+    if not next_url:
+        return None
+
+    if not isinstance(next_url, str):
+        raise RuntimeError(
+            f"Expected a string for the `@odata.nextUrl`, instead got {next_url=}"
+        )
+
+    return next_url.removeprefix(graph_client.service_root_url()).removeprefix("/")
+
+
+def _get_or_fetch_email(
+    graph_client: GraphClient,
+    member: ConversationMember,
+) -> str | None:
+    if email := member.properties.get("email"):
+        return email
+
+    user_id = member.properties.get("userId")
+    if not user_id:
+        logger.warning("No user-id found for this member; member=%r", member)
+        return None
+
+    json_data = _retry(graph_client=graph_client, request_url=f"users/{user_id}")
+    email = json_data.get("userPrincipalName")
+
+    if not isinstance(email, str):
+        logger.warning("Expected email to be of type str, instead got email=%r", email)
+        return None
+
+    return email
+
+
+def _is_channel_public(channel: Channel) -> bool:
+    return (
+        channel.membership_type and channel.membership_type == _PUBLIC_MEMBERSHIP_TYPE
+    )
+
+
+def fetch_messages(
+    graph_client: GraphClient,
+    team_id: str,
+    channel_id: str,
+    start: SecondsSinceUnixEpoch,
+) -> Generator[Message]:
+    startfmt = datetime.fromtimestamp(start, tz=timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
+
+    initial_request_url = f"teams/{team_id}/channels/{channel_id}/messages/delta?$filter=lastModifiedDateTime gt {startfmt}"
+
+    request_url: str | None = initial_request_url
+
+    while request_url:
+        json_response = _retry(graph_client=graph_client, request_url=request_url)
+
+        for value in json_response.get("value", []):
+            yield Message(**_sanitize_message_user_display_name(value))
+
+        request_url = _get_next_url(
+            graph_client=graph_client, json_response=json_response
+        )
+
+
+def fetch_replies(
+    graph_client: GraphClient,
+    team_id: str,
+    channel_id: str,
+    root_message_id: str,
+) -> Generator[Message]:
+    initial_request_url = (
+        f"teams/{team_id}/channels/{channel_id}/messages/{root_message_id}/replies"
+    )
+
+    request_url: str | None = initial_request_url
+
+    while request_url:
+        json_response = _retry(graph_client=graph_client, request_url=request_url)
+
+        for value in json_response.get("value", []):
+            yield Message(**_sanitize_message_user_display_name(value))
+
+        request_url = _get_next_url(
+            graph_client=graph_client, json_response=json_response
+        )
+
+
+def fetch_expert_infos(
+    graph_client: GraphClient, channel: Channel
+) -> list[BasicExpertInfo]:
+    members = channel.members.get_all(
+        # explicitly needed because of incorrect type definitions provided by the `office365` library
+        page_loaded=lambda _: None
+    ).execute_query_retry()
+
+    expert_infos = []
+    for member in members:
+        if not member.display_name:
+            logger.warning(
+                "Failed to grab the display-name of member=%r; skipping", member
+            )
+            continue
+
+        email = _get_or_fetch_email(graph_client=graph_client, member=member)
+        if not email:
+            logger.warning("Failed to grab the email of member=%r; skipping", member)
+            continue
+
+        expert_infos.append(
+            BasicExpertInfo(
+                display_name=member.display_name,
+                email=email,
+            )
+        )
+
+    return expert_infos
+
+
+def fetch_external_access(
+    graph_client: GraphClient,
+    channel: Channel,
+    expert_infos: list[BasicExpertInfo] | None = None,
+) -> ExternalAccess:
+    is_public = _is_channel_public(channel=channel)
+
+    if is_public:
+        return ExternalAccess.public()
+
+    expert_infos = (
+        expert_infos
+        if expert_infos is not None
+        else fetch_expert_infos(graph_client=graph_client, channel=channel)
+    )
+    emails = {expert_info.email for expert_info in expert_infos if expert_info.email}
+
+    return ExternalAccess(
+        external_user_emails=emails,
+        external_user_group_ids=set(),
+        is_public=is_public,
+    )

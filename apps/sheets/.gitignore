@@ -1,6 +1,0 @@
-node_modules/
-out/
-.vite/
-fixtures/generated/
-reports/
-native/xlsx-engine/target
