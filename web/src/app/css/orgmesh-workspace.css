@@ -691,3 +691,38 @@
     padding: 1rem;
   }
 }
+
+.workspace-history-heading,
+.workspace-history-task {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.workspace-history-actions,
+.workspace-history-controls,
+.workspace-history-provenance,
+.workspace-history-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.workspace-history-task {
+  padding: 1rem;
+  border: 1px solid var(--workspace-border);
+  border-radius: 12px;
+  background: var(--workspace-surface);
+}
+.workspace-history-task-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-inline-size: 0;
+  flex: 1 1 16rem;
+}
+.workspace-history-pagination {
+  justify-content: center;
+  padding-block: 0.75rem;
+}

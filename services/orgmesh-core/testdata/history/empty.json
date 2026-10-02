@@ -1,0 +1,17 @@
+{
+  "request": {
+    "version": 1,
+    "request_id": "00000000-0000-0000-0000-000000000064",
+    "query": {
+      "limit": 50,
+      "offset": 0,
+      "status": null
+    },
+    "facts": []
+  },
+  "response": {
+    "version": 1,
+    "request_id": "00000000-0000-0000-0000-000000000064",
+    "rows": []
+  }
+}

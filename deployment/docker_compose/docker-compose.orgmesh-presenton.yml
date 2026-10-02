@@ -3,6 +3,7 @@ services:
   api_server:
     environment:
       ORGMESH_PRESENTON_URL: http://presenton
+      ORGMESH_PRESENTON_HISTORY_ENABLED: ${ORGMESH_PRESENTON_HISTORY_ENABLED:-false}
       ORGMESH_PRESENTON_SECRET: ${ORGMESH_PRESENTON_SECRET:?Run deployment/enable_orgmesh_presenton.py first}
   presenton:
     image: orgmesh-presenton:local

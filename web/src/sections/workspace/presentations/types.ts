@@ -19,6 +19,10 @@ export interface WorkspacePresentation {
   created_at: string;
   updated_at: string | null;
   generation_mode: string;
+  platform_presentation_id?: string;
+  platform_task_id?: string | null;
+  source_chat_id?: string | null;
+  project_id?: number | null;
 }
 
 export interface PresentationJob {

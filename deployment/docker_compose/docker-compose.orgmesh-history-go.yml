@@ -1,0 +1,27 @@
+{
+  "services": {
+    "api_server": {
+      "environment": {
+        "ORGMESH_HISTORY_READ_BACKEND": "${ORGMESH_HISTORY_READ_BACKEND:-python}",
+        "ORGMESH_HISTORY_GO_SOCKET": "/run/orgmesh-history/history.sock"
+      },
+      "volumes": ["orgmesh_history_socket:/run/orgmesh-history:ro"]
+    },
+    "orgmesh_history_go": {
+      "build": {"context": "../..", "dockerfile": "deployment/Dockerfile.orgmesh-history-go"},
+      "image": "orgmesh-history-go:local",
+      "command": ["--socket", "/run/orgmesh-history/history.sock", "--peer-uid", "0"],
+      "user": "0:0",
+      "network_mode": "none",
+      "read_only": true,
+      "cap_drop": ["ALL"],
+      "security_opt": ["no-new-privileges:true"],
+      "volumes": ["orgmesh_history_socket:/run/orgmesh-history"],
+      "mem_limit": "128m",
+      "cpus": 1,
+      "pids_limit": 64,
+      "restart": "unless-stopped"
+    }
+  },
+  "volumes": {"orgmesh_history_socket": {}}
+}

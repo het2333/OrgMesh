@@ -7521,3 +7521,91 @@ class OrgMeshDirectoryUser(Base):
     updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
+
+
+class PresentationTask(Base):
+    """Platform history for the existing Presenton generation engine."""
+
+    __tablename__ = "orgmesh_presentation_task"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "engine_task_id",
+            name="uq_orgmesh_presentation_task_owner_engine",
+        ),
+        CheckConstraint(
+            "status IN ('submitting', 'pending', 'completed', 'error')",
+            name="ck_orgmesh_presentation_task_status",
+        ),
+        Index(
+            "ix_orgmesh_presentation_task_owner_created", "user_id", "created_at", "id"
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid4
+    )
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), nullable=False
+    )
+    engine_task_id: Mapped[UUID | None] = mapped_column(
+        PGUUID(as_uuid=True), nullable=True
+    )
+    presentation_id: Mapped[UUID | None] = mapped_column(
+        PGUUID(as_uuid=True), nullable=True
+    )
+    project_id: Mapped[int | None] = mapped_column(
+        ForeignKey("user_project.id", ondelete="SET NULL"), nullable=True
+    )
+    source_chat_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("chat_session.id", ondelete="SET NULL"), nullable=True
+    )
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    is_imported: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("false")
+    )
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class PresentationRecord(Base):
+    """An owner-scoped engine deck. Slides and files remain in Presenton."""
+
+    __tablename__ = "orgmesh_presentation_record"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "engine_presentation_id",
+            name="uq_orgmesh_presentation_record_owner_engine",
+        ),
+        Index(
+            "ix_orgmesh_presentation_record_owner_created",
+            "user_id",
+            "created_at",
+            "id",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid4
+    )
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), nullable=False
+    )
+    engine_presentation_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), nullable=False
+    )
+    task_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("orgmesh_presentation_task.id", ondelete="SET NULL"), nullable=True
+    )
+    title: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )

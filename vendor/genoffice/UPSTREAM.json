@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/genspark-ai/genoffice",
+  "commit": "676bf4d51239874d82d0d3edd10682c15ada367f",
+  "license": "Apache-2.0",
+  "original_lockfile_sha256": "eb44516c0df80e461a2f7aaeb26357b5c61cc8b4656c306a509438184f7f8530",
+  "scope": "Docs browser-host port only; original workspace files retained for source provenance",
+  "notice": "LICENSE, NOTICE, LICENSE-UNICODE.txt and bundled font licenses remain included"
+}

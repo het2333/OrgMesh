@@ -1,0 +1,13 @@
+# Optional private projector. Build from the repository root.
+FROM golang:1.27.1-alpine AS builder
+WORKDIR /src
+COPY services/orgmesh-core/ ./
+RUN GOTOOLCHAIN=local CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /historyd ./cmd/historyd \
+    && mkdir -m 0700 /socket
+
+FROM scratch
+COPY --from=builder /historyd /historyd
+COPY --from=builder /socket /run/orgmesh-history
+# The current OrgMesh API Dockerfile explicitly uses root. Check the running UID before opt-in.
+USER 0:0
+ENTRYPOINT ["/historyd"]

@@ -11,8 +11,9 @@ from uuid import UUID
 
 import httpx
 import litellm
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, JsonValue
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse, Response, StreamingResponse
 
@@ -20,11 +21,22 @@ from onyx.auth.permissions import require_permission
 from onyx.db.engine.sql_engine import get_session
 from onyx.db.enums import Permission
 from onyx.db.models import User
+from onyx.db.presentation_history import (
+    fail_generation,
+    history_facts_for_owner,
+    link_generation,
+    reserve_generation,
+    sync_jobs,
+    sync_presentations,
+    validate_source,
+)
 from onyx.db.presenton import presentation_model
 from onyx.db.users import fetch_user_by_id
 from onyx.error_handling.error_codes import OnyxErrorCode
 from onyx.error_handling.exceptions import OnyxError
 from onyx.llm.api_surfaces import OPENAI_COMPATIBLE_SURFACES, resolve_api_surface
+from onyx.presentation_history.contract import HistoryQuery
+from onyx.presentation_history.routing import read_history_response
 from onyx.server.presenton_security import (
     issue_token,
     validate_proxy_path,
@@ -151,24 +163,56 @@ async def status(
         return PresentationStatus(available=False)
 
 
+def _history_enabled() -> bool:
+    return (
+        os.environ.get("ORGMESH_PRESENTON_HISTORY_ENABLED", "false").lower() == "true"
+    )
+
+
+@router.get("/history")
+async def history(
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0, le=100000),
+    user: User = Depends(require_permission(Permission.BASIC_ACCESS)),
+    db_session: Session = Depends(get_session),
+    status: Literal["submitting", "pending", "completed", "error"] | None = Query(
+        default=None
+    ),
+) -> JsonValue:
+    if not _history_enabled():
+        raise OnyxError(OnyxErrorCode.NOT_FOUND, "Presentation history is disabled")
+    facts = history_facts_for_owner(db_session, user.id, limit, offset, status)
+    return await read_history_response(
+        facts, HistoryQuery(limit=limit, offset=offset, status=status)
+    )
+
+
 @router.get("/presentations")
 async def presentations(
     user: User = Depends(require_permission(Permission.BASIC_ACCESS)),
+    db_session: Session = Depends(get_session),
 ) -> JsonValue:
-    return _normalize_dates(
+    result = _normalize_dates(
         await _json(user, "GET", "/api/v1/ppt/presentation/all?include_slides=false")
+    )
+    return (
+        sync_presentations(db_session, user.id, result)
+        if _history_enabled()
+        else result
     )
 
 
 @router.get("/jobs")
 async def jobs(
     user: User = Depends(require_permission(Permission.BASIC_ACCESS)),
+    db_session: Session = Depends(get_session),
 ) -> JsonValue:
-    return _normalize_dates(
+    result = _normalize_dates(
         await _json(
             user, "GET", "/api/v1/async-tasks?type=presentation.generate&limit=50"
         )
     )
+    return sync_jobs(db_session, user.id, result) if _history_enabled() else result
 
 
 class GeneratePresentation(BaseModel):
@@ -178,6 +222,8 @@ class GeneratePresentation(BaseModel):
     language: Literal["Chinese", "English"] = "Chinese"
     template: Literal["general"] = "general"
     files: list[str] = Field(default_factory=list, max_length=5)
+    project_id: int | None = Field(default=None, ge=1)
+    source_chat_id: UUID | None = None
 
 
 class GenerationJob(BaseModel):
@@ -189,8 +235,18 @@ async def generate(
     body: GeneratePresentation,
     user: User = Depends(require_permission(Permission.BASIC_ACCESS)),
     db_session: Session = Depends(get_session),
-) -> GenerationJob:
+) -> GenerationJob | dict[str, str]:
     presentation_model(db_session, user)
+    enabled = _history_enabled()
+    if not enabled and (body.project_id is not None or body.source_chat_id is not None):
+        raise OnyxError(
+            OnyxErrorCode.SERVICE_UNAVAILABLE, "Presentation history is disabled"
+        )
+    project, source = (
+        validate_source(db_session, user.id, body.project_id, body.source_chat_id)
+        if enabled
+        else (None, None)
+    )
     for path in body.files:
         if (
             not path.startswith(f"/tmp/presenton/{user.id}/")  # noqa: S108 — upstream owner-scoped upload root
@@ -201,7 +257,7 @@ async def generate(
                 OnyxErrorCode.INVALID_INPUT, "Upload reference files before generating"
             )
     async with _generation_lock:
-        current = await jobs(user)
+        current = await jobs(user, db_session)
         if (
             isinstance(current, list)
             and sum(
@@ -215,19 +271,61 @@ async def generate(
                 "Wait for an existing presentation to finish",
             )
         payload: dict[str, JsonValue] = {
-            **body.model_dump(),
+            **body.model_dump(exclude={"project_id", "source_chat_id"}),
             "web_search": False,
             "export_as": "pptx",
             "trigger_webhook": False,
         }
-        result = await _json(
-            user, "POST", "/api/v1/ppt/presentation/generate/async", payload
+        task = (
+            reserve_generation(db_session, user.id, project, source)
+            if enabled
+            else None
         )
-        if not isinstance(result, dict) or not isinstance(result.get("id"), str):
-            raise OnyxError(
-                OnyxErrorCode.BAD_GATEWAY, "Presentation task was not created"
+        # Resolve the committed identity before contacting the engine.
+        platform_id = task.id if task is not None else None
+        try:
+            result = await _json(
+                user, "POST", "/api/v1/ppt/presentation/generate/async", payload
             )
-        return GenerationJob(task_id=result["id"])
+            if not isinstance(result, dict) or not isinstance(result.get("id"), str):
+                raise OnyxError(
+                    OnyxErrorCode.BAD_GATEWAY, "Presentation task was not created"
+                )
+            if platform_id is not None:
+                try:
+                    engine_id = UUID(result["id"])
+                except ValueError as exc:
+                    raise OnyxError(
+                        OnyxErrorCode.BAD_GATEWAY, "Invalid presentation task ID"
+                    ) from exc
+                try:
+                    link_generation(db_session, user.id, platform_id, engine_id)
+                except SQLAlchemyError:
+                    db_session.rollback()
+                    try:
+                        # Retry the DB bind only. Never repeat an accepted engine POST.
+                        link_generation(db_session, user.id, platform_id, engine_id)
+                    except SQLAlchemyError:
+                        db_session.rollback()
+                        return {
+                            "task_id": result["id"],
+                            "platform_task_id": str(platform_id),
+                            "history_status": "awaiting_sync",
+                        }
+                return {"task_id": result["id"], "platform_task_id": str(platform_id)}
+            return GenerationJob(task_id=result["id"])
+        except OnyxError as exc:
+            if platform_id is not None:
+                if exc.status_code < 500:
+                    fail_generation(db_session, user.id, platform_id)
+                else:
+                    # A timeout or bad response does not prove the engine rejected it.
+                    raise OnyxError(
+                        OnyxErrorCode.SERVICE_UNAVAILABLE,
+                        "Generation outcome is uncertain. Check jobs before retrying.",
+                        extra={"platform_task_id": str(platform_id)},
+                    ) from exc
+            raise
 
 
 async def _request_body(request: Request, limit: int) -> bytes:

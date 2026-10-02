@@ -1,0 +1,99 @@
+{
+  "request": {
+    "version": 1,
+    "request_id": "00000000-0000-0000-0000-000000000064",
+    "query": {
+      "limit": 50,
+      "offset": 0,
+      "status": null
+    },
+    "facts": [
+      {
+        "platform_id": "00000000-0000-0000-0000-000000000001",
+        "engine_task_id": null,
+        "deck_id": null,
+        "state": "submitting",
+        "visible_project_id": null,
+        "visible_source_chat_id": null,
+        "created_at": "2026-10-01T03:04:05",
+        "updated_at": "2026-10-01T03:04:05"
+      },
+      {
+        "platform_id": "00000000-0000-0000-0000-000000000002",
+        "engine_task_id": "00000000-0000-0000-0000-00000000000b",
+        "deck_id": null,
+        "state": "pending",
+        "visible_project_id": null,
+        "visible_source_chat_id": null,
+        "created_at": "2026-10-01T03:04:05+00:00",
+        "updated_at": "2026-10-01T03:04:05+00:00"
+      },
+      {
+        "platform_id": "00000000-0000-0000-0000-000000000003",
+        "engine_task_id": "00000000-0000-0000-0000-00000000000c",
+        "deck_id": "00000000-0000-0000-0000-000000000016",
+        "state": "completed",
+        "visible_project_id": 7,
+        "visible_source_chat_id": "00000000-0000-0000-0000-00000000005a",
+        "created_at": "2026-10-01T03:04:05",
+        "updated_at": "2026-10-01T03:04:05"
+      },
+      {
+        "platform_id": "00000000-0000-0000-0000-000000000004",
+        "engine_task_id": "00000000-0000-0000-0000-00000000000d",
+        "deck_id": null,
+        "state": "error",
+        "visible_project_id": null,
+        "visible_source_chat_id": null,
+        "created_at": "2026-10-01T03:04:05+00:00",
+        "updated_at": "2026-10-01T03:04:05+00:00"
+      }
+    ]
+  },
+  "response": {
+    "version": 1,
+    "request_id": "00000000-0000-0000-0000-000000000064",
+    "rows": [
+      {
+        "platform_task_id": "00000000-0000-0000-0000-000000000001",
+        "task_id": null,
+        "presentation_id": null,
+        "status": "submitting",
+        "project_id": null,
+        "source_chat_id": null,
+        "created_at": "2026-10-01T03:04:05",
+        "updated_at": "2026-10-01T03:04:05"
+      },
+      {
+        "platform_task_id": "00000000-0000-0000-0000-000000000002",
+        "task_id": "00000000-0000-0000-0000-00000000000b",
+        "presentation_id": null,
+        "status": "pending",
+        "project_id": null,
+        "source_chat_id": null,
+        "created_at": "2026-10-01T03:04:05+00:00",
+        "updated_at": "2026-10-01T03:04:05+00:00"
+      },
+      {
+        "platform_task_id": "00000000-0000-0000-0000-000000000003",
+        "task_id": "00000000-0000-0000-0000-00000000000c",
+        "presentation_id": "00000000-0000-0000-0000-000000000016",
+        "status": "completed",
+        "project_id": 7,
+        "source_chat_id": "00000000-0000-0000-0000-00000000005a",
+        "created_at": "2026-10-01T03:04:05",
+        "updated_at": "2026-10-01T03:04:05"
+      },
+      {
+        "platform_task_id": "00000000-0000-0000-0000-000000000004",
+        "task_id": "00000000-0000-0000-0000-00000000000d",
+        "presentation_id": null,
+        "status": "error",
+        "project_id": null,
+        "source_chat_id": null,
+        "created_at": "2026-10-01T03:04:05+00:00",
+        "updated_at": "2026-10-01T03:04:05+00:00"
+      }
+    ]
+  }
+}
