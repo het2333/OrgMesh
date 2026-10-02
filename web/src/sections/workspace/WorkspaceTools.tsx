@@ -3,6 +3,7 @@
 import { Button, Text } from "@opal/components";
 import { SvgHistory } from "@opal/icons";
 import { useTranslations } from "next-intl";
+import DocumentLibrary from "@/sections/workspace/documents/DocumentLibrary";
 import PresentationCreator from "@/sections/workspace/presentations/PresentationCreator";
 import PresentationJobs from "@/sections/workspace/presentations/PresentationJobs";
 import PresentationLibrary from "@/sections/workspace/presentations/PresentationLibrary";
@@ -29,6 +30,7 @@ export default function WorkspaceTools() {
         {t("history.open")}
       </Button>
 
+      <DocumentLibrary />
       <PresentationCreator />
       <PresentationJobs />
       <PresentationLibrary />

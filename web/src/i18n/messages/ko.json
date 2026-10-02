@@ -14299,6 +14299,33 @@
           "completed": "완료",
           "error": "실패"
         }
+      },
+      "word": {
+        "title": "Word 문서",
+        "description": "문서를 만들거나 DOCX 파일을 여세요. 파일은 비공개로 유지됩니다.",
+        "name": "문서 이름",
+        "import": "DOCX 파일 선택",
+        "importOpen": "가져와서 열기",
+        "create": "새 문서",
+        "untitled": "제목 없음.docx",
+        "refresh": "문서 새로고침",
+        "open": "열기",
+        "download": "DOCX 다운로드",
+        "save": "저장",
+        "saved": "저장됨",
+        "empty": "저장된 Word 문서가 없습니다.",
+        "fileError": "20 MiB 이하의 DOCX 파일을 선택하세요.",
+        "createError": "생성을 확인할 수 없습니다. 중복을 피하려면 양식을 변경하지 말고 다시 시도하세요.",
+        "downloadError": "다운로드에 실패했습니다. 저장된 문서는 변경되지 않았습니다.",
+        "listError": "문서를 불러올 수 없습니다. 새로고침하세요.",
+        "back": "도구로 돌아가기",
+        "editorTitle": "Word 편집기: {title}",
+        "editorHint": "OrgMesh에 저장합니다. 다운로드 전에 저장한 뒤 저장된 DOCX를 가져옵니다. AI는 비활성화되어 있습니다.",
+        "editorError": "편집기를 사용할 수 없습니다. 접근 권한과 브라우저 빌드를 확인하세요.",
+        "saveError": "저장에 실패했습니다. 이 페이지를 열어 두고 다시 시도하세요. 다른 탭에서 저장했다면 다시 열기 전에 파일 → 다른 이름으로 저장으로 로컬 사본을 다운로드하세요.",
+        "leaveConfirm": "문서에서 나갈까요? 저장하지 않은 변경 사항은 사라집니다.",
+        "unavailable": "Word 편집이 활성화되지 않았습니다.",
+        "clearFile": "파일 선택 취소"
       }
     },
     "send": "보내기",

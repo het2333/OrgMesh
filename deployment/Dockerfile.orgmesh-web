@@ -8,4 +8,5 @@ USER node
 COPY --chown=node:node server.js /app/server.js
 COPY --chown=node:node next/ /app/.next/
 COPY --chown=node:node static/ /app/.next/static/
+COPY --chown=node:node public/ /app/public/
 ENV NEXT_PUBLIC_DISABLE_LOGOUT=false

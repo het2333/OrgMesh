@@ -14299,6 +14299,33 @@
           "completed": "已完成",
           "error": "失败"
         }
+      },
+      "word": {
+        "title": "Word 文档",
+        "description": "新建文档或打开 DOCX 文件。文件仅你可访问。",
+        "name": "文档名称",
+        "import": "选择 DOCX 文件",
+        "importOpen": "导入并打开",
+        "create": "新建文档",
+        "untitled": "未命名.docx",
+        "refresh": "刷新文档",
+        "open": "打开",
+        "download": "下载 DOCX",
+        "save": "保存",
+        "saved": "已保存",
+        "empty": "还没有保存的 Word 文档。",
+        "fileError": "请选择不超过 20 MiB 的 DOCX 文件。",
+        "createError": "无法确认新建结果。请保持表单不变后重试，避免重复创建。",
+        "downloadError": "下载失败，已保存的文档未改变。",
+        "listError": "无法加载文档，请刷新重试。",
+        "back": "返回工具页",
+        "editorTitle": "Word 编辑器：{title}",
+        "editorHint": "保存到 OrgMesh。下载时先保存，再获取已存储的 DOCX。AI 暂未启用。",
+        "editorError": "Word 编辑器暂不可用，请检查访问权限和浏览器构建。",
+        "saveError": "保存失败，请保留此页面并重试。如其他标签页已保存，请先用“文件 → 另存为”下载本地副本，再重新打开。",
+        "leaveConfirm": "离开文档？未保存的修改会丢失。",
+        "unavailable": "Word 编辑尚未启用。",
+        "clearFile": "取消选中文件"
       }
     },
     "send": "发送",

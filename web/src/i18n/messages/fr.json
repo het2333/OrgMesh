@@ -14299,6 +14299,33 @@
           "completed": "Terminée",
           "error": "Échec"
         }
+      },
+      "word": {
+        "title": "Documents Word",
+        "description": "Créez un document ou ouvrez un fichier DOCX. Vos fichiers restent privés.",
+        "name": "Nom du document",
+        "import": "Choisir un fichier DOCX",
+        "importOpen": "Importer et ouvrir",
+        "create": "Nouveau document",
+        "untitled": "Sans titre.docx",
+        "refresh": "Actualiser les documents",
+        "open": "Ouvrir",
+        "download": "Télécharger DOCX",
+        "save": "Enregistrer",
+        "saved": "Enregistré",
+        "empty": "Aucun document Word enregistré.",
+        "fileError": "Choisissez un fichier DOCX de 20 Mio maximum.",
+        "createError": "Création non confirmée. Réessayez sans modifier le formulaire pour éviter un doublon.",
+        "downloadError": "Échec du téléchargement. Le document enregistré reste inchangé.",
+        "listError": "Chargement impossible. Actualisez la liste.",
+        "back": "Retour aux outils",
+        "editorTitle": "Éditeur Word : {title}",
+        "editorHint": "Enregistrez dans OrgMesh. Le téléchargement enregistre puis récupère le DOCX stocké. IA désactivée.",
+        "editorError": "Éditeur indisponible. Vérifiez votre accès et la compilation du navigateur.",
+        "saveError": "Échec de l’enregistrement. Gardez cette page ouverte et réessayez. Si un autre onglet a enregistré le fichier, utilisez Fichier → Enregistrer sous pour télécharger votre copie locale avant de le rouvrir.",
+        "leaveConfirm": "Quitter le document ? Les modifications non enregistrées seront perdues.",
+        "unavailable": "L’édition Word est désactivée.",
+        "clearFile": "Retirer le fichier"
       }
     },
     "send": "Envoyer",

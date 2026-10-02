@@ -28,6 +28,7 @@ from onyx.db.models import (
 )
 from onyx.db.orgmesh import get_directory_membership, get_source_document_access
 from onyx.db.user_file import fetch_user_files_with_access_relationships
+from onyx.db.word_documents import is_private_word_file
 from onyx.utils.variable_functionality import (
     fetch_ee_implementation_or_noop,
     fetch_versioned_implementation,
@@ -247,6 +248,10 @@ def user_can_access_chat_file(file_id: str, user: User, db_session: Session) -> 
     URL carries the access context and one indexed lookup suffices, instead
     of fanning out 4–5 queries across unrelated classes on every request.
     """
+    # Word version bytes never inherit access from chat or connector references.
+    if is_private_word_file(db_session, file_id):
+        return False
+
     owns_user_file = db_session.query(
         select(UserFile.id)
         .where(UserFile.file_id == file_id, UserFile.user_id == user.id)

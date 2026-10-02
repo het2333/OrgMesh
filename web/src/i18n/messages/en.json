@@ -14299,6 +14299,33 @@
           "completed": "Completed",
           "error": "Failed"
         }
+      },
+      "word": {
+        "title": "Word documents",
+        "description": "Create a document or open a DOCX file. Your files stay private.",
+        "name": "Document name",
+        "import": "Choose a DOCX file",
+        "importOpen": "Import and open",
+        "create": "New document",
+        "untitled": "Untitled.docx",
+        "refresh": "Refresh documents",
+        "open": "Open",
+        "download": "Download DOCX",
+        "save": "Save",
+        "saved": "Saved",
+        "empty": "No saved Word documents yet.",
+        "fileError": "Choose a DOCX file up to 20 MiB.",
+        "createError": "Could not confirm creation. Retry without changing the form to avoid a duplicate.",
+        "downloadError": "Download failed. Your saved document is unchanged.",
+        "listError": "Could not load documents. Try refreshing.",
+        "back": "Back to tools",
+        "editorTitle": "Word editor: {title}",
+        "editorHint": "Save changes to OrgMesh. Download saves first and fetches the stored DOCX. AI is not enabled.",
+        "editorError": "The Word editor is unavailable. Check access and the browser build.",
+        "saveError": "Save failed. Keep this page open and retry. If another tab saved this file, use File → Save As to download your local copy before reopening.",
+        "leaveConfirm": "Leave this document? Unsaved changes will be lost.",
+        "unavailable": "Word editing is not enabled.",
+        "clearFile": "Clear file"
       }
     },
     "send": "Send",

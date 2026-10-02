@@ -414,6 +414,7 @@ class FileStoreType(str, Enum):
 
 
 class FileOrigin(str, Enum):
+    ORGMESH_WORD = "orgmesh_word"
     CHAT_UPLOAD = "chat_upload"
     CHAT_IMAGE_GEN = "chat_image_gen"
     CONNECTOR = "connector"

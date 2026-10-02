@@ -14299,6 +14299,33 @@
           "completed": "Concluída",
           "error": "Falha"
         }
+      },
+      "word": {
+        "title": "Documentos Word",
+        "description": "Crie um documento ou abra um arquivo DOCX. Seus arquivos são privados.",
+        "name": "Nome do documento",
+        "import": "Escolher arquivo DOCX",
+        "importOpen": "Importar e abrir",
+        "create": "Novo documento",
+        "untitled": "Sem título.docx",
+        "refresh": "Atualizar documentos",
+        "open": "Abrir",
+        "download": "Baixar DOCX",
+        "save": "Salvar",
+        "saved": "Salvo",
+        "empty": "Ainda não há documentos Word salvos.",
+        "fileError": "Escolha um arquivo DOCX de até 20 MiB.",
+        "createError": "Não foi possível confirmar a criação. Tente novamente sem alterar o formulário para evitar duplicatas.",
+        "downloadError": "Falha no download. O documento salvo não foi alterado.",
+        "listError": "Não foi possível carregar os documentos. Atualize a lista.",
+        "back": "Voltar às ferramentas",
+        "editorTitle": "Editor Word: {title}",
+        "editorHint": "Salve no OrgMesh. O download salva primeiro e busca o DOCX armazenado. A IA não está ativada.",
+        "editorError": "O editor não está disponível. Verifique o acesso e a compilação do navegador.",
+        "saveError": "Falha ao salvar. Mantenha esta página aberta e tente novamente. Se outra aba salvou o arquivo, use Arquivo → Salvar como para baixar sua cópia local antes de reabri-lo.",
+        "leaveConfirm": "Sair do documento? Alterações não salvas serão perdidas.",
+        "unavailable": "A edição de Word não está ativada.",
+        "clearFile": "Remover arquivo"
       }
     },
     "send": "Enviar",

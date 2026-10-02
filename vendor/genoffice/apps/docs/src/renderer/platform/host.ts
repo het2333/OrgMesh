@@ -57,21 +57,37 @@ export interface BrowserOpenResult {
   bytes: Uint8Array
   snapshot: DocumentSnapshot
 }
+interface PendingWrite {
+  snapshot: DocumentSnapshot
+  bytes: ArrayBuffer
+  hash: string
+  key: string
+}
 interface Binding {
   host: DocsHostPort
   snapshot: DocumentSnapshot | null
   pending: DocumentSnapshot | null
   epoch: number
+  pendingWrite: PendingWrite | null
 }
 let binding: Binding | null = null
 let epoch = 0
 
+export function getHostedSnapshot(): DocumentSnapshot | null {
+  return binding?.snapshot ? { ...binding.snapshot } : null
+}
 export function getDocsHost(): DocsHostPort | null {
   return binding?.host ?? null
 }
 export function installDocsHost(host: DocsHostPort): () => void {
   if (binding) throw new Error('HOST_ALREADY_MOUNTED')
-  const installed = { host, snapshot: null, pending: null, epoch: ++epoch }
+  const installed = {
+    host,
+    snapshot: null,
+    pending: null,
+    epoch: ++epoch,
+    pendingWrite: null,
+  }
   binding = installed
   return () => {
     if (binding === installed) {
@@ -137,6 +153,7 @@ export async function openHostedDocument(): Promise<BrowserOpenResult> {
   const active = currentBinding()
   active.snapshot = null
   active.pending = null
+  active.pendingWrite = null
   const snapshot = await active.host.openDocument(active.host.initialDocumentId)
   assertCurrent(active)
   if (snapshot.document_id !== active.host.initialDocumentId)
@@ -159,40 +176,62 @@ export function confirmHostedDocument(snapshot: DocumentSnapshot): void {
 }
 export interface HostedSaveLease {
   assertCurrent(): void
+  settle(): Promise<VersionResult | null>
   save(buffer: ArrayBuffer): Promise<VersionResult>
 }
 /** Capture before waiting for content or serializing editor bytes. */
 export function captureHostedSave(): HostedSaveLease | null {
   if (!binding) return null
   const active = binding
-  const previous = active.snapshot
-  if (!previous) throw new Error('DOCUMENT_NOT_OPEN')
+  if (!active.snapshot) throw new Error('DOCUMENT_NOT_OPEN')
+  let previous: DocumentSnapshot = active.snapshot
   const check = () => {
     assertCurrent(active)
     if (active.snapshot !== previous) throw new Error('VERSION_CONFLICT')
   }
+  async function settle(): Promise<VersionResult | null> {
+    check()
+    const pending = active.pendingWrite
+    if (!pending) return null
+    if (pending.snapshot !== previous) throw new Error('VERSION_CONFLICT')
+    const result = await active.host.saveVersion(
+      previous.document_id,
+      previous.version_id,
+      pending.bytes.slice(0),
+      pending.key,
+    )
+    if (
+      result.document_id !== previous.document_id ||
+      result.parent_version_id !== previous.version_id
+    )
+      throw new Error('VERSION_RESPONSE_MISMATCH')
+    if (pending.hash !== result.content_hash) throw new Error('CONTENT_HASH_MISMATCH')
+    check()
+    active.snapshot = result
+    previous = result
+    active.pendingWrite = null
+    return result
+  }
   return {
     assertCurrent: check,
+    settle,
     async save(buffer) {
-      check()
+      // Resolve the original request before accepting any later editor state.
+      // Serializers may change DOCX timestamps even when content did not change.
+      const recovered = await settle()
       const bytes = new Uint8Array(buffer.slice(0))
       await validateBrowserDocx(bytes)
       check()
-      const result = await active.host.saveVersion(
-        previous.document_id,
-        previous.version_id,
-        bytes.buffer,
-        crypto.randomUUID(),
-      )
-      if (
-        result.document_id !== previous.document_id ||
-        result.parent_version_id !== previous.version_id
-      )
-        throw new Error('VERSION_RESPONSE_MISMATCH')
-      if ((await contentHash(bytes)) !== result.content_hash)
-        throw new Error('CONTENT_HASH_MISMATCH')
-      check()
-      active.snapshot = result
+      const hash = await contentHash(bytes)
+      if (recovered?.content_hash === hash) return recovered
+      active.pendingWrite = {
+        snapshot: previous,
+        bytes: bytes.buffer,
+        hash,
+        key: crypto.randomUUID(),
+      }
+      const result = await settle()
+      if (!result) throw new Error('DOCUMENT_SAVE_NOT_STARTED')
       return result
     },
   }

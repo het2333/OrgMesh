@@ -1,3 +1,4 @@
+import { bindBrowserSession } from './platform/browser-session'
 import {
   getDocsHost,
   openHostedDocument,
@@ -5164,6 +5165,23 @@ export function App() {
   const anyDirtyRef = useRef(false)
   const hasUnsavedChanges = isDocDirty(fileCtxRef.current)
   anyDirtyRef.current = hasUnsavedChanges
+
+  useEffect(() => {
+    if (!getDocsHost()) return
+    const hasChanges = () =>
+      saveInFlightRef.current || isDocDirty(fileCtxRef.current)
+    const dispose = bindBrowserSession({ save: () => save(false), hasChanges })
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasChanges()) return
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    window.addEventListener('beforeunload', beforeUnload)
+    return () => {
+      dispose()
+      window.removeEventListener('beforeunload', beforeUnload)
+    }
+  }, [save])
 
   // close guard: the main process queries dirty state before closing a tab/window; choosing "Save" runs a full save and reports back
   useEffect(() => {

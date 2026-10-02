@@ -988,6 +988,7 @@ async function saveOnce(
   ctx.saveIncompleteRef.current = false
   try {
     const hostedSave = captureHostedSave()
+    if (hostedSave && !saveAs) await hostedSave.settle()
     // a mid-stream save would serialize (and write) a truncated document
     const generation = docGeneration
     await waitForFullContent()

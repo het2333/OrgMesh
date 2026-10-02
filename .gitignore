@@ -71,3 +71,6 @@ plans
 .claude/scheduled_tasks.lock
 .claude/worktrees/
 !.claude/settings.json
+
+# Generated GenOffice browser bundle
+/web/public/office/docs/

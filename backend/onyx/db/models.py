@@ -7609,3 +7609,82 @@ class PresentationRecord(Base):
     updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+
+
+class WordDocument(Base):
+    """Owner-scoped document; each tenant uses its existing database schema."""
+
+    __tablename__ = "orgmesh_word_document"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "creation_key", name="uq_word_document_owner_creation"
+        ),
+        Index("ix_word_document_owner_updated", "user_id", "updated_at", "id"),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid4
+    )
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), nullable=False
+    )
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    current_version_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey(
+            "orgmesh_word_document_version.id",
+            name="fk_word_document_current_version",
+            use_alter=True,
+            deferrable=True,
+            initially="DEFERRED",
+        ),
+        nullable=False,
+    )
+    creation_key: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), nullable=False)
+    creation_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class WordDocumentVersion(Base):
+    """Immutable whole-DOCX versions and durable idempotent write results."""
+
+    __tablename__ = "orgmesh_word_document_version"
+    __table_args__ = (
+        UniqueConstraint(
+            "document_id",
+            "operation",
+            "idempotency_key",
+            name="uq_word_version_document_request",
+        ),
+        CheckConstraint(
+            "operation IN ('import', 'manual')", name="ck_word_version_operation"
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid4
+    )
+    document_id: Mapped[UUID] = mapped_column(
+        ForeignKey("orgmesh_word_document.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    parent_version_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("orgmesh_word_document_version.id"), nullable=True
+    )
+    file_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_by: Mapped[UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), nullable=False
+    )
+    operation: Mapped[str] = mapped_column(String(16), nullable=False)
+    idempotency_key: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), nullable=False)
+    request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )

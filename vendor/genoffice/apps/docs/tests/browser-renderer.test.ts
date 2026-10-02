@@ -6,11 +6,13 @@ import { webcrypto } from 'node:crypto'
 import type { Editor } from '@tiptap/core'
 import JSZip from 'jszip'
 import { App } from '../src/renderer/App'
+import { hasBrowserChanges, saveBrowserDocument } from '../src/renderer/platform/browser-session'
 import { LocaleProvider } from '../src/renderer/i18n/locale'
 import {
   installDocsHost,
   captureHostedSave,
   type DocsHostPort,
+  type VersionResult,
 } from '../src/renderer/platform/host'
 
 let root: Root | undefined
@@ -58,12 +60,27 @@ afterEach(async () => {
   document.body.innerHTML = ''
 })
 
-async function mountFixture(expectLoaded = true) {
-  const bytes = new Uint8Array(readFileSync('../../fixtures/generated/simple.docx'))
+async function mountFixture(expectLoaded = true, blank = false, loseFirstResponse = false) {
+  let bytes = new Uint8Array(
+    readFileSync(
+      blank ? 'tests/fixtures/orgmesh-blank.docx' : '../../fixtures/generated/simple.docx',
+    ),
+  )
+  if (loseFirstResponse) {
+    const zip = await JSZip.loadAsync(bytes)
+    zip.file(
+      'docProps/core.xml',
+      '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dcterms="http://purl.org/dc/terms/"><dcterms:modified>2026-10-01T00:00:00Z</dcterms:modified><cp:revision>1</cp:revision></cp:coreProperties>',
+    )
+    bytes = new Uint8Array(await zip.generateAsync({ type: 'uint8array' }))
+  }
   const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)))
     .map((x) => x.toString(16).padStart(2, '0'))
     .join('')
   let stored: ArrayBuffer | null = null
+  let currentVersion = '20000000-0000-4000-8000-000000000001'
+  const committed = new Map<string, VersionResult>()
+  const attempts: Array<{ bytes: ArrayBuffer; key: string; expected: string }> = []
   const unsupported = async (): Promise<never> => {
     throw new Error('NOT_ENABLED')
   }
@@ -78,12 +95,16 @@ async function mountFixture(expectLoaded = true) {
       project_id: null,
     }),
     readVersion: async () => bytes.buffer,
-    saveVersion: async (id, expected, buffer) => {
+    saveVersion: async (id, expected, buffer, key) => {
+      attempts.push({ bytes: buffer.slice(0), key, expected })
+      const previous = committed.get(key)
+      if (previous) return previous
+      if (expected !== currentVersion) throw new Error('VERSION_CONFLICT')
       stored = buffer
       const savedHash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', buffer)))
         .map((x) => x.toString(16).padStart(2, '0'))
         .join('')
-      return {
+      const result: VersionResult = {
         document_id: id,
         version_id: crypto.randomUUID(),
         parent_version_id: expected,
@@ -92,6 +113,10 @@ async function mountFixture(expectLoaded = true) {
         project_id: null,
         operation: 'manual',
       }
+      committed.set(key, result)
+      currentVersion = result.version_id
+      if (loseFirstResponse && committed.size === 1) throw new Error('RESPONSE_LOST')
+      return result
     },
     startRun: unsupported,
     subscribeRun: () => {
@@ -112,7 +137,7 @@ async function mountFixture(expectLoaded = true) {
   if (expectLoaded) {
     await expect.poll(() => container.querySelector('.tiptap')).not.toBeNull()
     await expect.poll(() => container.querySelector('.ai-panel')).not.toBeNull()
-    expect(container.querySelector('.tiptap')?.textContent).toContain('第一段。')
+    if (!blank) expect(container.querySelector('.tiptap')?.textContent).toContain('第一段。')
     await expect
       .poll(() => {
         try {
@@ -123,7 +148,7 @@ async function mountFixture(expectLoaded = true) {
       })
       .toBe(true)
   }
-  return { container, stored: () => stored }
+  return { container, stored: () => stored, committed, attempts }
 }
 
 it('opens the original editor and right panel with no Electron preload', async () => {
@@ -285,3 +310,70 @@ it('hides and disables the desktop picture replacement picker in browser mode', 
   expect(control!.disabled).toBe(true)
   expect(control!.hidden).toBe(true)
 })
+
+it('opens the backend blank DOCX and saves a real document through the platform controls', async () => {
+  const mounted = await mountFixture(true, true)
+  const control = Reflect.get(window, '__aidocs') as { editor: Editor }
+  await act(async () => {
+    control.editor.commands.insertContentAt(1, '平台新建 中文😀')
+  })
+  expect(hasBrowserChanges()).toBe(true)
+  const unload = new Event('beforeunload', { cancelable: true })
+  expect(window.dispatchEvent(unload)).toBe(false)
+  let saved = false
+  await act(async () => {
+    saved = await saveBrowserDocument()
+  })
+  expect(saved).toBe(true)
+  expect(hasBrowserChanges()).toBe(false)
+  const bytes = mounted.stored()
+  expect(bytes).not.toBeNull()
+  const zip = await JSZip.loadAsync(bytes!)
+  expect(await zip.file('word/document.xml')!.async('string')).toContain('平台新建 中文😀')
+  expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(true)
+})
+
+it.each([false, true])(
+  'recovers a lost original-serializer save response (later edit: %s)',
+  async (laterEdit) => {
+    const mounted = await mountFixture(true, false, true)
+    const control = Reflect.get(window, '__aidocs') as { editor: Editor }
+    await act(async () => {
+      control.editor.commands.insertContentAt(1, 'first saved edit ')
+    })
+    let first = true
+    await act(async () => {
+      first = await saveBrowserDocument()
+    })
+    expect(first).toBe(false)
+    expect(mounted.committed.size).toBe(1)
+    expect(hasBrowserChanges()).toBe(true)
+    await new Promise((resolve) => setTimeout(resolve, 1100))
+    if (laterEdit)
+      await act(async () => {
+        control.editor.commands.insertContentAt(1, 'newer local edit ')
+      })
+    let retried = false
+    await act(async () => {
+      retried = await saveBrowserDocument()
+    })
+    expect(retried).toBe(true)
+    expect(mounted.attempts).toHaveLength(3)
+    expect(mounted.attempts[1]?.key).toBe(mounted.attempts[0]?.key)
+    expect(new Uint8Array(mounted.attempts[1]!.bytes)).toEqual(
+      new Uint8Array(mounted.attempts[0]!.bytes),
+    )
+    expect(new Uint8Array(mounted.attempts[2]!.bytes)).not.toEqual(
+      new Uint8Array(mounted.attempts[0]!.bytes),
+    )
+    expect(mounted.attempts[2]?.expected).toBe(
+      mounted.committed.get(mounted.attempts[0]!.key)?.version_id,
+    )
+    expect(mounted.committed.size).toBe(2)
+    expect(hasBrowserChanges()).toBe(false)
+    const zip = await JSZip.loadAsync(mounted.stored()!)
+    const xml = await zip.file('word/document.xml')!.async('string')
+    expect(xml).toContain('first saved edit ')
+    if (laterEdit) expect(xml).toContain('newer local edit ')
+  },
+)

@@ -14299,6 +14299,33 @@
           "completed": "Completada",
           "error": "Fallida"
         }
+      },
+      "word": {
+        "title": "Documentos Word",
+        "description": "Crea un documento o abre un archivo DOCX. Tus archivos son privados.",
+        "name": "Nombre del documento",
+        "import": "Elegir archivo DOCX",
+        "importOpen": "Importar y abrir",
+        "create": "Nuevo documento",
+        "untitled": "Sin título.docx",
+        "refresh": "Actualizar documentos",
+        "open": "Abrir",
+        "download": "Descargar DOCX",
+        "save": "Guardar",
+        "saved": "Guardado",
+        "empty": "Aún no hay documentos Word guardados.",
+        "fileError": "Elige un archivo DOCX de hasta 20 MiB.",
+        "createError": "No se pudo confirmar la creación. Reintenta sin cambiar el formulario para evitar duplicados.",
+        "downloadError": "Falló la descarga. El documento guardado no cambió.",
+        "listError": "No se pudieron cargar los documentos. Actualiza la lista.",
+        "back": "Volver a herramientas",
+        "editorTitle": "Editor Word: {title}",
+        "editorHint": "Guarda en OrgMesh. Descargar guarda primero y obtiene el DOCX almacenado. La IA no está activada.",
+        "editorError": "El editor no está disponible. Revisa el acceso y la compilación del navegador.",
+        "saveError": "Error al guardar. Mantén esta página abierta y reintenta. Si otra pestaña guardó el archivo, usa Archivo → Guardar como para descargar tu copia local antes de reabrirlo.",
+        "leaveConfirm": "¿Salir del documento? Se perderán los cambios sin guardar.",
+        "unavailable": "La edición de Word no está activada.",
+        "clearFile": "Quitar archivo"
       }
     },
     "send": "Enviar",

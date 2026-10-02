@@ -14299,6 +14299,33 @@
           "completed": "Abgeschlossen",
           "error": "Fehlgeschlagen"
         }
+      },
+      "word": {
+        "title": "Word-Dokumente",
+        "description": "Erstelle ein Dokument oder öffne eine DOCX-Datei. Deine Dateien bleiben privat.",
+        "name": "Dokumentname",
+        "import": "DOCX-Datei auswählen",
+        "importOpen": "Importieren und öffnen",
+        "create": "Neues Dokument",
+        "untitled": "Unbenannt.docx",
+        "refresh": "Dokumente aktualisieren",
+        "open": "Öffnen",
+        "download": "DOCX herunterladen",
+        "save": "Speichern",
+        "saved": "Gespeichert",
+        "empty": "Noch keine gespeicherten Word-Dokumente.",
+        "fileError": "Wähle eine DOCX-Datei mit höchstens 20 MiB.",
+        "createError": "Erstellung nicht bestätigt. Versuche es mit unverändertem Formular erneut, um Duplikate zu vermeiden.",
+        "downloadError": "Download fehlgeschlagen. Das gespeicherte Dokument bleibt unverändert.",
+        "listError": "Dokumente konnten nicht geladen werden. Aktualisiere die Liste.",
+        "back": "Zurück zu den Werkzeugen",
+        "editorTitle": "Word-Editor: {title}",
+        "editorHint": "Speichere in OrgMesh. Der Download speichert zuerst und lädt die gespeicherte DOCX-Datei. KI ist deaktiviert.",
+        "editorError": "Editor nicht verfügbar. Prüfe den Zugriff und den Browser-Build.",
+        "saveError": "Speichern fehlgeschlagen. Lass diese Seite offen und versuche es erneut. Hat ein anderer Tab gespeichert, lade vor dem erneuten Öffnen über Datei → Speichern unter deine lokale Kopie herunter.",
+        "leaveConfirm": "Dokument verlassen? Ungespeicherte Änderungen gehen verloren.",
+        "unavailable": "Die Word-Bearbeitung ist deaktiviert.",
+        "clearFile": "Datei entfernen"
       }
     },
     "send": "Senden",

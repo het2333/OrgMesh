@@ -1,0 +1,1 @@
+"""Owner-scoped Word documents."""

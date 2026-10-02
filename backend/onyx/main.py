@@ -157,10 +157,10 @@ from onyx.server.middleware.rate_limiting import (
 )
 from onyx.server.oidc_multi import router as oidc_multi_router
 from onyx.server.onyx_api.ingestion import router as onyx_api_router
-from onyx.server.presenton import router as presenton_router
 from onyx.server.orgmesh import router as orgmesh_router
 from onyx.server.orgmesh import runtime_router as orgmesh_runtime_router
 from onyx.server.pat.api import router as pat_router
+from onyx.server.presenton import router as presenton_router
 from onyx.server.query_and_chat.chat_backend import router as chat_router
 from onyx.server.query_and_chat.query_backend import admin_router as admin_query_router
 from onyx.server.query_and_chat.query_backend import basic_router as query_router
@@ -171,6 +171,7 @@ from onyx.server.settings.api import admin_router as settings_admin_router
 from onyx.server.settings.api import basic_router as settings_router
 from onyx.server.sso_discovery import router as sso_discovery_router
 from onyx.server.utils import BasicAuthenticationError
+from onyx.server.word_documents import router as word_documents_router
 from onyx.setup import setup_multitenant_onyx, setup_onyx
 from onyx.tracing.setup import setup_tracing
 from onyx.utils.client_ip import ClientIPMiddleware
@@ -614,6 +615,7 @@ def get_application(lifespan_override: Lifespan | None = None) -> FastAPI:
     include_router_with_global_prefix_prepended(application, orgmesh_router)
     include_router_with_global_prefix_prepended(application, orgmesh_runtime_router)
     include_router_with_global_prefix_prepended(application, presenton_router)
+    include_router_with_global_prefix_prepended(application, word_documents_router)
     include_router_with_global_prefix_prepended(application, chinese_retrieval_router)
     include_router_with_global_prefix_prepended(application, agent_templates_router)
     include_router_with_global_prefix_prepended(application, embedding_admin_router)

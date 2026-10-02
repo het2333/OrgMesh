@@ -174,3 +174,57 @@ it('does not send bytes from a disposed document to a new mounted host', async (
   await expect(lease!.save(fixture.slice().buffer)).rejects.toThrow('HOST_DISPOSED')
   expect(second.saved()).toBeNull()
 })
+
+it('reuses the same idempotency key after a lost save response', async () => {
+  const fixtureHost = await makeHost()
+  const save = fixtureHost.host.saveVersion
+  const keys: string[] = []
+  fixtureHost.host.saveVersion = async (id, previous, bytes, key) => {
+    keys.push(key)
+    if (keys.length === 1) throw new Error('NETWORK_ERROR')
+    return save(id, previous, bytes, key)
+  }
+  dispose = installDocsHost(fixtureHost.host)
+  confirmHostedDocument((await openHostedDocument()).snapshot)
+  await expect(saveHostedDocument(fixture.slice().buffer)).rejects.toThrow('NETWORK_ERROR')
+  await saveHostedDocument(fixture.slice().buffer)
+  expect(keys[1]).toBe(keys[0])
+})
+
+it('settles exact pending bytes before saving later edits', async () => {
+  const fixtureHost = await makeHost()
+  const committed = new Map<string, VersionResult>()
+  const requests: Array<{ bytes: ArrayBuffer; key: string; expected: string }> = []
+  let current = versionId
+  fixtureHost.host.saveVersion = async (_id, expected, bytes, key) => {
+    requests.push({ bytes: bytes.slice(0), key, expected })
+    const previous = committed.get(key)
+    if (previous) return previous
+    if (expected !== current) throw new Error('VERSION_CONFLICT')
+    const result: VersionResult = {
+      ...fixtureHost.snapshot,
+      version_id: crypto.randomUUID(),
+      parent_version_id: expected,
+      operation: 'manual',
+      content_hash: await hash(new Uint8Array(bytes)),
+    }
+    current = result.version_id
+    committed.set(key, result)
+    if (committed.size === 1) throw new Error('RESPONSE_LOST')
+    return result
+  }
+  dispose = installDocsHost(fixtureHost.host)
+  confirmHostedDocument((await openHostedDocument()).snapshot)
+  await expect(saveHostedDocument(fixture.slice().buffer)).rejects.toThrow('RESPONSE_LOST')
+  const changed = await JSZip.loadAsync(fixture)
+  changed.file(
+    'docProps/core.xml',
+    '<coreProperties><modified>later edit</modified></coreProperties>',
+  )
+  await saveHostedDocument(new Uint8Array(await changed.generateAsync({ type: 'uint8array' })).buffer)
+  expect(requests).toHaveLength(3)
+  expect(requests[1]?.key).toBe(requests[0]?.key)
+  expect(new Uint8Array(requests[1]!.bytes)).toEqual(new Uint8Array(requests[0]!.bytes))
+  expect(requests[2]?.expected).toBe(committed.get(requests[0]!.key)?.version_id)
+  expect(committed.size).toBe(2)
+})

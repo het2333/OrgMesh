@@ -2,6 +2,9 @@
 set -euo pipefail
 
 project_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ "${ORGMESH_BUILD_WORD:-false}" == "true" ]]; then
+  bash "$project_dir/deployment/build_orgmesh_word.sh"
+fi
 cd "$project_dir/web"
 
 export NEXT_PUBLIC_DISABLE_LOGOUT=false
@@ -31,6 +34,7 @@ stage.mkdir(parents=True)
 shutil.copy2(root / "web/.next/standalone/server.js", stage / "server.js")
 shutil.copytree(root / "web/.next/standalone/.next", stage / "next", symlinks=True)
 shutil.copytree(root / "web/.next/static", stage / "static")
+shutil.copytree(root / "web/public", stage / "public")
 PY
 
 docker build -t orgmesh-web:local -f "$project_dir/deployment/Dockerfile.orgmesh-web" "$project_dir/.orgmesh-local/frontend"
