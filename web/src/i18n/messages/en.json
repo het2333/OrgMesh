@@ -14484,6 +14484,51 @@
       "saveGlossary": "Save glossary",
       "saved": "Saved successfully.",
       "failed": "Action failed. Check the field format, app permissions, and service logs."
+    },
+    "people": {
+      "title": "People",
+      "description": "Find coworkers, teams and verified reporting relationships",
+      "retry": "Retry",
+      "loading": "Loading directory…",
+      "unnamed": "Name not provided",
+      "notProvided": "Not provided",
+      "unnamedTeam": "Team name not provided",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page} · {total} records",
+      "profile": "Employee profile",
+      "closeProfile": "Close profile",
+      "knowledgeSearch": "Search company knowledge",
+      "knowledgeDescription": "Run a normal knowledge search. Results still follow your document access; this does not guarantee authorship.",
+      "manager": "Manager",
+      "managerUnavailable": "Manager not provided or unavailable",
+      "openChart": "Open org chart",
+      "allTeams": "All teams",
+      "members": "{count} members",
+      "departmentFilter": "Filter by department",
+      "relationshipWarning": "Some reporting relationships are missing, cyclic or too deep to display safely.",
+      "collapse": "Collapse reports",
+      "expand": "Expand reports",
+      "noReports": "No visible direct reports",
+      "choosePerson": "Choose an employee to explore reporting relationships",
+      "tabs": {
+        "employees": "Employees",
+        "teams": "Teams",
+        "chart": "Org chart"
+      },
+      "search": {
+        "label": "Search people",
+        "placeholder": "Name, work email, department or job title",
+        "submit": "Search"
+      },
+      "error": {
+        "title": "Directory unavailable",
+        "description": "The directory could not be loaded. Check access or try again."
+      },
+      "empty": {
+        "title": "No people found",
+        "description": "There is no matching active, unexpired directory data. Ask your admin to check directory sync."
+      }
     }
   }
 }

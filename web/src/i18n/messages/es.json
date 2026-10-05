@@ -14484,6 +14484,51 @@
       "saveGlossary": "Save glossary",
       "saved": "Saved successfully.",
       "failed": "Action failed. Check the field format, app permissions, and service logs."
+    },
+    "people": {
+      "title": "Personas",
+      "description": "Encuentra compañeros, equipos y relaciones jerárquicas verificadas",
+      "retry": "Reintentar",
+      "loading": "Cargando directorio…",
+      "unnamed": "Nombre no proporcionado",
+      "notProvided": "No proporcionado",
+      "unnamedTeam": "Nombre del equipo no proporcionado",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "page": "Página {page} · {total} registros",
+      "profile": "Perfil del empleado",
+      "closeProfile": "Cerrar perfil",
+      "knowledgeSearch": "Buscar conocimiento de la empresa",
+      "knowledgeDescription": "Búsqueda normal con los permisos de documentos. No garantiza la autoría.",
+      "manager": "Responsable",
+      "managerUnavailable": "Responsable no proporcionado o no disponible",
+      "openChart": "Abrir organigrama",
+      "allTeams": "Todos los equipos",
+      "members": "{count} miembros",
+      "departmentFilter": "Filtrar por departamento",
+      "relationshipWarning": "Faltan relaciones jerárquicas, son cíclicas o demasiado profundas para mostrarlas de forma segura.",
+      "collapse": "Contraer subordinados",
+      "expand": "Expandir subordinados",
+      "noReports": "No hay subordinados directos visibles",
+      "choosePerson": "Selecciona un empleado para explorar las relaciones jerárquicas",
+      "tabs": {
+        "employees": "Empleados",
+        "teams": "Equipos",
+        "chart": "Organigrama"
+      },
+      "search": {
+        "label": "Buscar personas",
+        "placeholder": "Nombre, correo de trabajo, departamento o cargo",
+        "submit": "Buscar"
+      },
+      "error": {
+        "title": "Directorio no disponible",
+        "description": "No se pudo cargar el directorio. Comprueba el acceso o vuelve a intentarlo."
+      },
+      "empty": {
+        "title": "No se encontraron personas",
+        "description": "No hay datos activos y vigentes que coincidan. Pide al administrador que revise la sincronización."
+      }
     }
   }
 }

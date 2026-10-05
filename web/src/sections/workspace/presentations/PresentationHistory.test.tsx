@@ -119,6 +119,7 @@ beforeEach(() => {
         data: tasks,
         error: taskError,
         isLoading: loading,
+        isValidating: false,
         mutate,
       } as ReturnType<typeof useSWR>;
     if (url === "/api/orgmesh/presenton/presentations")
@@ -126,6 +127,7 @@ beforeEach(() => {
         data: [deck],
         error: deckError,
         isLoading: false,
+        isValidating: false,
         mutate,
       } as ReturnType<typeof useSWR>;
     if (url === "/api/orgmesh/presenton/jobs")
@@ -133,11 +135,14 @@ beforeEach(() => {
         data: [],
         error: liveError,
         isLoading: false,
+        isValidating: false,
         mutate,
       } as ReturnType<typeof useSWR>;
     return {
       data: [{ id: 7, name: "Owned project" }],
+      error: undefined,
       isLoading: false,
+      isValidating: false,
       mutate,
     } as ReturnType<typeof useSWR>;
   });

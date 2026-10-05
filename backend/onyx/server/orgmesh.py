@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
-from onyx.access.directory import fetch_feishu_directory
+from onyx.access.directory import fetch_feishu_directory_snapshot
 from onyx.auth.permissions import require_permission
 from onyx.configs.app_configs import DISABLE_VECTOR_DB
 from onyx.configs.constants import DocumentSource
@@ -112,7 +112,7 @@ def synchronize_directory(db_session: Session) -> int:
         str(data.get("feishu_app_id", "")), str(data.get("feishu_app_secret", ""))
     )
     try:
-        employees = fetch_feishu_directory(client)
+        employees = fetch_feishu_directory_snapshot(client)
         return replace_directory_snapshot(db_session, employees)
     except (FeishuAPIError, ValueError) as error:
         raise OnyxError(

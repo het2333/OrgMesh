@@ -74,3 +74,5 @@ plans
 
 # Generated GenOffice browser bundle
 /web/public/office/docs/
+# Local execution records
+.superpowers/

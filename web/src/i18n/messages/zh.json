@@ -14484,6 +14484,51 @@
       "saveGlossary": "保存词表",
       "saved": "已保存。",
       "failed": "操作失败，请检查字段格式、飞书应用权限及服务日志。"
+    },
+    "people": {
+      "title": "人员",
+      "description": "查找同事、团队和已同步的汇报关系",
+      "retry": "重试",
+      "loading": "正在加载通讯录…",
+      "unnamed": "未提供姓名",
+      "notProvided": "未提供",
+      "unnamedTeam": "未提供团队名称",
+      "previous": "上一页",
+      "next": "下一页",
+      "page": "第 {page} 页 · 共 {total} 条",
+      "profile": "员工资料",
+      "closeProfile": "关闭资料",
+      "knowledgeSearch": "搜索企业知识",
+      "knowledgeDescription": "使用普通知识搜索，结果仍遵守文档访问权限，不保证内容由此人创作",
+      "manager": "上级",
+      "managerUnavailable": "未提供上级或上级不可用",
+      "openChart": "查看组织架构",
+      "allTeams": "全部团队",
+      "members": "{count} 位成员",
+      "departmentFilter": "按部门筛选",
+      "relationshipWarning": "部分汇报关系缺失、存在循环或层级过深，暂无法安全展示",
+      "collapse": "收起下级",
+      "expand": "展开下级",
+      "noReports": "没有可见的直属下级",
+      "choosePerson": "选择员工以查看汇报关系",
+      "tabs": {
+        "employees": "员工",
+        "teams": "团队",
+        "chart": "组织架构"
+      },
+      "search": {
+        "label": "搜索人员",
+        "placeholder": "姓名、企业邮箱、部门或职位",
+        "submit": "搜索"
+      },
+      "error": {
+        "title": "通讯录暂不可用",
+        "description": "无法加载通讯录，请检查访问权限或重试"
+      },
+      "empty": {
+        "title": "没有找到人员",
+        "description": "没有匹配的有效在职目录数据，请联系管理员检查通讯录同步"
+      }
     }
   }
 }

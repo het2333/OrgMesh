@@ -1,4 +1,22 @@
 /* OrgMesh workspace: shared surfaces for workspace pages. */
+.workspace-people { padding: 2rem; inline-size: 100%; max-inline-size: 76rem; margin-inline: auto; }
+.workspace-people-header { display: grid; gap: .5rem; padding-block-end: 1.5rem; }
+.workspace-people-tabs, .workspace-people-toolbar, .workspace-people-filters, .workspace-people-paging { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding-block: .75rem; }
+.workspace-people-search { display: flex; gap: .75rem; padding-block: .75rem; }
+.workspace-people-search > :first-child { flex: 1; }
+.workspace-people-body { display: flex; align-items: flex-start; gap: 1.5rem; }
+.workspace-people-results { flex: 1; min-inline-size: 0; }
+.workspace-people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: 1rem; padding-block: 1rem; }
+.workspace-person-card { display: flex; flex-direction: column; gap: .5rem; padding: 1rem; border: 1px solid var(--workspace-border); border-radius: .75rem; background: var(--workspace-surface); }
+.workspace-person-avatar { inline-size: 3rem; block-size: 3rem; object-fit: cover; border-radius: 50%; }
+.workspace-person-panel { display: flex; flex-direction: column; gap: 1rem; padding: 1rem; inline-size: 20rem; border: 1px solid var(--workspace-border); border-radius: .75rem; background: var(--workspace-surface); }
+.workspace-people-state { display: grid; justify-items: center; gap: 1rem; padding: 2rem; }
+.workspace-org-chart { overflow-x: auto; padding: 1rem; }
+.workspace-org-level { display: flex; gap: 1.25rem; list-style: none; padding: 1rem 0; }
+.workspace-org-node { flex: 0 0 15rem; position: relative; }
+.workspace-org-children { border-inline-start: 2px solid var(--workspace-border); padding-inline-start: 1rem; }
+.workspace-org-manager { max-inline-size: 15rem; border-block-end: 2px solid var(--workspace-border); padding-block-end: 1rem; }
+@media (max-width: 768px) { .workspace-people { padding: 1rem; } .workspace-people-body { flex-direction: column; } .workspace-person-panel { inline-size: 100%; } .workspace-people-results { inline-size: 100%; } }
 :root {
   --workspace-canvas: #f8f9fb;
   --workspace-sidebar: #f2f4f7;

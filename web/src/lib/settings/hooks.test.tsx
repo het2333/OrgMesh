@@ -62,7 +62,7 @@ describe("useSettings enterprise-settings 404 handling", () => {
     const { result } = renderHook(() => useSettings());
     expect(result.current.error).toBeUndefined();
     expect(result.current.enterprise).toBeNull();
-    expect(result.current.appName).toBe("Onyx");
+    expect(result.current.appName).toBe("OrgMesh");
     expect(result.current.logoUrl).toBeNull();
     expect(enterpriseRetryPolicy()(missing)).toBe(false);
   });

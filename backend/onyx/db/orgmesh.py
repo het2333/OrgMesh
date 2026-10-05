@@ -3,9 +3,11 @@ from uuid import UUID
 
 from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from onyx.access.models import ExternalAccess
+from onyx.access.people_models import DirectorySnapshot
 from onyx.access.source_access import source_acl_checked_at
 from onyx.db.models import Document, OrgMeshDirectoryUser, User
 
@@ -88,6 +90,33 @@ def get_directory_membership(
 
 
 def replace_directory_snapshot(
+    db_session: Session,
+    employees: list[tuple[str, str, list[str], bool]] | DirectorySnapshot,
+) -> int:
+    """Commit ACL memberships and display metadata as one complete snapshot."""
+    from onyx.db.people import replace_people_snapshot
+
+    if isinstance(employees, DirectorySnapshot):
+        snapshot = employees
+        memberships = [
+            (person.email, person.employee_id, person.acl_department_ids, person.active)
+            for person in snapshot.employees
+        ]
+    else:
+        snapshot = None
+        memberships = employees
+    try:
+        count = _replace_directory_memberships(db_session, memberships)
+        if snapshot is not None:
+            replace_people_snapshot(db_session, snapshot)
+        db_session.commit()
+        return count
+    except (ValueError, SQLAlchemyError):
+        db_session.rollback()
+        raise
+
+
+def _replace_directory_memberships(
     db_session: Session, employees: list[tuple[str, str, list[str], bool]]
 ) -> int:
     """Apply a completed directory snapshot; never accept a partial crawl."""
@@ -136,7 +165,6 @@ def replace_directory_snapshot(
             .where(func.lower(User.email).in_(disabled))
             .values(is_active=False)
         )
-    db_session.commit()
     return len(employees)
 
 

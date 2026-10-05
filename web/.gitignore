@@ -50,3 +50,6 @@ next-env.d.ts
 
 # storybook
 storybook-static
+
+# Also ignore a generated build directory symlink
+/.next

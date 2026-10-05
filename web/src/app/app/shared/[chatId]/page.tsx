@@ -7,7 +7,7 @@ import { Agent } from "@/lib/agents/types";
 import type { BackendChatSession } from "@/app/app/interfaces";
 
 // This is used for rendering a persona in the shared chat display
-export function constructMiniFiedPersona(name: string, id: number): Agent {
+function constructMiniFiedPersona(name: string, id: number): Agent {
   return {
     id,
     name,

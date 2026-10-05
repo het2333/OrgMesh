@@ -14484,6 +14484,51 @@
       "saveGlossary": "Save glossary",
       "saved": "Saved successfully.",
       "failed": "Action failed. Check the field format, app permissions, and service logs."
+    },
+    "people": {
+      "title": "구성원",
+      "description": "동료, 팀 및 동기화된 보고 관계 찾기",
+      "retry": "다시 시도",
+      "loading": "불러오는 중…",
+      "unnamed": "이름 미제공",
+      "notProvided": "미제공",
+      "unnamedTeam": "팀 이름 미제공",
+      "previous": "이전",
+      "next": "다음",
+      "page": "{page} 페이지 · {total}개 항목",
+      "profile": "직원 프로필",
+      "closeProfile": "프로필 닫기",
+      "knowledgeSearch": "회사 지식 검색",
+      "knowledgeDescription": "일반 지식 검색을 실행합니다. 문서 접근 권한이 적용되며 해당 직원의 저작 여부를 보장하지 않습니다.",
+      "manager": "상사",
+      "managerUnavailable": "상사 정보가 없거나 사용할 수 없음",
+      "openChart": "조직도 열기",
+      "allTeams": "모든 팀",
+      "members": "구성원 {count}명",
+      "departmentFilter": "부서로 필터링",
+      "relationshipWarning": "일부 보고 관계가 누락되거나 순환하거나 너무 깊어 안전하게 표시할 수 없습니다.",
+      "collapse": "부하 직원 접기",
+      "expand": "부하 직원 펼치기",
+      "noReports": "표시 가능한 직속 부하 직원 없음",
+      "choosePerson": "직원을 선택하여 보고 관계 살펴보기",
+      "tabs": {
+        "employees": "직원",
+        "teams": "팀",
+        "chart": "조직도"
+      },
+      "search": {
+        "label": "구성원 검색",
+        "placeholder": "이름, 업무 이메일, 부서 또는 직책",
+        "submit": "검색"
+      },
+      "error": {
+        "title": "디렉터리를 사용할 수 없음",
+        "description": "디렉터리를 불러올 수 없습니다. 권한을 확인하거나 다시 시도하세요."
+      },
+      "empty": {
+        "title": "구성원을 찾을 수 없음",
+        "description": "일치하는 유효 재직자 데이터가 없습니다. 관리자에게 동기화 확인을 요청하세요."
+      }
     }
   }
 }

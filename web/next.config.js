@@ -1,4 +1,3 @@
-// Always require withSentryConfig
 const { withSentryConfig } = require("@sentry/nextjs");
 const { PHASE_DEVELOPMENT_SERVER } = require("next/constants");
 const createNextIntlPlugin = require("next-intl/plugin");
@@ -253,9 +252,8 @@ const nextConfig = {
   },
 };
 
-// Sentry configuration for error monitoring:
-// - Without SENTRY_AUTH_TOKEN and NEXT_PUBLIC_SENTRY_DSN: Sentry is completely disabled
-// - With both configured: Capture errors and limited performance data
+// Apply SDK build integration only when configured. Disable its upload/release
+// plugin in every build. Runtime error reporting uses the separate DSN files.
 
 // Determine if Sentry should be enabled
 const sentryEnabled = Boolean(
@@ -268,17 +266,10 @@ const sentryWebpackPluginOptions = {
   project: process.env.SENTRY_PROJECT || "onyx-web",
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: !sentryEnabled, // Silence output when Sentry is disabled
-  dryRun: !sentryEnabled, // Don't upload source maps when Sentry is disabled
-  ...(sentryEnabled && {
-    sourceMaps: {
-      include: ["./.next"],
-      ignore: ["node_modules"],
-      urlPrefix: "~/_next",
-      stripPrefix: ["webpack://_N_E/"],
-      validate: true,
-      cleanArtifacts: true,
-    },
-  }),
+  telemetry: false,
+  sourcemaps: { disable: true },
+  release: { create: false, finalize: false },
+  webpack: { unstable_sentryWebpackPluginOptions: { disable: true } },
 };
 
 // Export the module with conditional Sentry configuration.
@@ -295,14 +286,13 @@ const sentryWebpackPluginOptions = {
 // validate React Compiler behavior in dev.
 module.exports = (phase) => {
   const isDevServer = phase === PHASE_DEVELOPMENT_SERVER;
+  const config = {
+    ...nextConfig,
+    reactCompiler: !isDevServer || process.env.ENABLE_REACT_COMPILER === "1",
+  };
   return withNextIntl(
-    withSentryConfig(
-      {
-        ...nextConfig,
-        reactCompiler:
-          !isDevServer || process.env.ENABLE_REACT_COMPILER === "1",
-      },
-      sentryWebpackPluginOptions
-    )
+    sentryEnabled
+      ? withSentryConfig(config, sentryWebpackPluginOptions)
+      : config
   );
 };

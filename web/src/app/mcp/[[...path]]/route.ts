@@ -2,7 +2,7 @@ import { MCP_INTERNAL_URL } from "@/lib/constants";
 import { NextRequest, NextResponse } from "next/server";
 
 type RouteContext = {
-  params?: Promise<{
+  params: Promise<{
     path?: string[];
   }>;
 };
@@ -22,9 +22,9 @@ const proxyHandler = async (
   }
 
   try {
-    const resolvedParams = context.params ? await context.params : undefined;
+    const resolvedParams = await context.params;
     const targetUrl = buildTargetUrl(
-      resolvedParams?.path,
+      resolvedParams.path,
       request.nextUrl.searchParams
     );
     const headers = buildForwardHeaders(request.headers);

@@ -14484,6 +14484,51 @@
       "saveGlossary": "Save glossary",
       "saved": "Saved successfully.",
       "failed": "Action failed. Check the field format, app permissions, and service logs."
+    },
+    "people": {
+      "title": "الأشخاص",
+      "description": "ابحث عن الزملاء والفرق وعلاقات الإدارة المتحقق منها",
+      "retry": "إعادة المحاولة",
+      "loading": "جارٍ تحميل الدليل…",
+      "unnamed": "الاسم غير مقدم",
+      "notProvided": "غير مقدم",
+      "unnamedTeam": "اسم الفريق غير مقدم",
+      "previous": "السابق",
+      "next": "التالي",
+      "page": "الصفحة {page} · {total} سجل",
+      "profile": "ملف الموظف",
+      "closeProfile": "إغلاق الملف",
+      "knowledgeSearch": "البحث في معرفة الشركة",
+      "knowledgeDescription": "بحث عادي يحترم صلاحيات المستندات ولا يضمن أن الشخص هو المؤلف.",
+      "manager": "المدير",
+      "managerUnavailable": "المدير غير مقدم أو غير متاح",
+      "openChart": "فتح الهيكل التنظيمي",
+      "allTeams": "جميع الفرق",
+      "members": "{count} أعضاء",
+      "departmentFilter": "التصفية حسب القسم",
+      "relationshipWarning": "بعض علاقات الإدارة مفقودة أو دورية أو عميقة جدًا للعرض الآمن.",
+      "collapse": "طي المرؤوسين",
+      "expand": "توسيع المرؤوسين",
+      "noReports": "لا يوجد مرؤوسون مباشرون ظاهرون",
+      "choosePerson": "اختر موظفًا لاستكشاف علاقات الإدارة",
+      "tabs": {
+        "employees": "الموظفون",
+        "teams": "الفرق",
+        "chart": "الهيكل التنظيمي"
+      },
+      "search": {
+        "label": "البحث عن أشخاص",
+        "placeholder": "الاسم أو بريد العمل أو القسم أو المسمى الوظيفي",
+        "submit": "بحث"
+      },
+      "error": {
+        "title": "الدليل غير متاح",
+        "description": "تعذر تحميل الدليل. تحقق من صلاحيات الوصول أو حاول مجددًا."
+      },
+      "empty": {
+        "title": "لم يتم العثور على أشخاص",
+        "description": "لا توجد بيانات دليل نشطة وسارية مطابقة. اطلب من المسؤول التحقق من المزامنة."
+      }
     }
   }
 }

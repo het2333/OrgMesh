@@ -14484,6 +14484,51 @@
       "saveGlossary": "Save glossary",
       "saved": "Saved successfully.",
       "failed": "Action failed. Check the field format, app permissions, and service logs."
+    },
+    "people": {
+      "title": "Personen",
+      "description": "Kollegen, Teams und bestätigte Berichtsbeziehungen finden",
+      "retry": "Erneut versuchen",
+      "loading": "Verzeichnis wird geladen…",
+      "unnamed": "Name nicht angegeben",
+      "notProvided": "Nicht angegeben",
+      "unnamedTeam": "Teamname nicht angegeben",
+      "previous": "Zurück",
+      "next": "Weiter",
+      "page": "Seite {page} · {total} Einträge",
+      "profile": "Mitarbeiterprofil",
+      "closeProfile": "Profil schließen",
+      "knowledgeSearch": "Unternehmenswissen durchsuchen",
+      "knowledgeDescription": "Normale Wissenssuche mit Ihren Dokumentrechten. Die Urheberschaft wird nicht garantiert.",
+      "manager": "Vorgesetzter",
+      "managerUnavailable": "Vorgesetzter nicht angegeben oder nicht verfügbar",
+      "openChart": "Organigramm öffnen",
+      "allTeams": "Alle Teams",
+      "members": "{count} Mitglieder",
+      "departmentFilter": "Nach Abteilung filtern",
+      "relationshipWarning": "Einige Berichtsbeziehungen fehlen, sind zyklisch oder zu tief für eine sichere Anzeige.",
+      "collapse": "Berichte einklappen",
+      "expand": "Berichte ausklappen",
+      "noReports": "Keine sichtbaren direkten Mitarbeiter",
+      "choosePerson": "Wählen Sie einen Mitarbeiter, um Berichtsbeziehungen anzuzeigen",
+      "tabs": {
+        "employees": "Mitarbeiter",
+        "teams": "Teams",
+        "chart": "Organigramm"
+      },
+      "search": {
+        "label": "Personen suchen",
+        "placeholder": "Name, geschäftliche E-Mail, Abteilung oder Position",
+        "submit": "Suchen"
+      },
+      "error": {
+        "title": "Verzeichnis nicht verfügbar",
+        "description": "Das Verzeichnis konnte nicht geladen werden. Prüfen Sie den Zugriff oder versuchen Sie es erneut."
+      },
+      "empty": {
+        "title": "Keine Personen gefunden",
+        "description": "Keine passenden aktiven, gültigen Verzeichnisdaten. Bitten Sie Ihren Admin, die Synchronisierung zu prüfen."
+      }
     }
   }
 }

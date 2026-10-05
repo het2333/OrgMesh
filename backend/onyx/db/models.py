@@ -7523,6 +7523,38 @@ class OrgMeshDirectoryUser(Base):
     )
 
 
+class OrgMeshPerson(Base):
+    """Display metadata only. Directory memberships still control visibility."""
+
+    __tablename__ = "orgmesh_person"
+    employee_id: Mapped[str] = mapped_column(String, primary_key=True)
+    email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    work_email: Mapped[str | None] = mapped_column(String, nullable=True)
+    display_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    job_title: Mapped[str | None] = mapped_column(String, nullable=True)
+    avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    manager_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+
+
+class OrgMeshDepartment(Base):
+    __tablename__ = "orgmesh_department"
+    department_id: Mapped[str] = mapped_column(String, primary_key=True)
+    name: Mapped[str | None] = mapped_column(String, nullable=True)
+    parent_id: Mapped[str | None] = mapped_column(String, nullable=True)
+
+
+class OrgMeshPersonDepartment(Base):
+    """Direct display memberships, separate from inherited document ACL groups."""
+
+    __tablename__ = "orgmesh_person_department"
+    employee_id: Mapped[str] = mapped_column(
+        ForeignKey("orgmesh_person.employee_id", ondelete="CASCADE"), primary_key=True
+    )
+    department_id: Mapped[str] = mapped_column(
+        ForeignKey("orgmesh_department.department_id", ondelete="CASCADE"), primary_key=True
+    )
+
+
 class PresentationTask(Base):
     """Platform history for the existing Presenton generation engine."""
 

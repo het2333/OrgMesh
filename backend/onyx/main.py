@@ -160,6 +160,7 @@ from onyx.server.onyx_api.ingestion import router as onyx_api_router
 from onyx.server.orgmesh import router as orgmesh_router
 from onyx.server.orgmesh import runtime_router as orgmesh_runtime_router
 from onyx.server.pat.api import router as pat_router
+from onyx.server.people import router as people_router
 from onyx.server.presenton import router as presenton_router
 from onyx.server.query_and_chat.chat_backend import router as chat_router
 from onyx.server.query_and_chat.query_backend import admin_router as admin_query_router
@@ -615,6 +616,7 @@ def get_application(lifespan_override: Lifespan | None = None) -> FastAPI:
     include_router_with_global_prefix_prepended(application, orgmesh_router)
     include_router_with_global_prefix_prepended(application, orgmesh_runtime_router)
     include_router_with_global_prefix_prepended(application, presenton_router)
+    include_router_with_global_prefix_prepended(application, people_router)
     include_router_with_global_prefix_prepended(application, word_documents_router)
     include_router_with_global_prefix_prepended(application, chinese_retrieval_router)
     include_router_with_global_prefix_prepended(application, agent_templates_router)

@@ -14484,6 +14484,51 @@
       "saveGlossary": "Save glossary",
       "saved": "Saved successfully.",
       "failed": "Action failed. Check the field format, app permissions, and service logs."
+    },
+    "people": {
+      "title": "メンバー",
+      "description": "同僚、チーム、同期済みの報告関係を探す",
+      "retry": "再試行",
+      "loading": "読み込み中…",
+      "unnamed": "氏名未提供",
+      "notProvided": "未提供",
+      "unnamedTeam": "チーム名未提供",
+      "previous": "前へ",
+      "next": "次へ",
+      "page": "{page} ページ · {total} 件",
+      "profile": "従業員プロフィール",
+      "closeProfile": "プロフィールを閉じる",
+      "knowledgeSearch": "社内ナレッジを検索",
+      "knowledgeDescription": "通常の検索を行います。文書のアクセス権が適用され、本人による作成を保証しません。",
+      "manager": "上司",
+      "managerUnavailable": "上司が未提供または利用できません",
+      "openChart": "組織図を開く",
+      "allTeams": "すべてのチーム",
+      "members": "メンバー {count} 人",
+      "departmentFilter": "部署で絞り込む",
+      "relationshipWarning": "一部の報告関係が未提供、循環、または深すぎるため安全に表示できません。",
+      "collapse": "部下を折りたたむ",
+      "expand": "部下を展開",
+      "noReports": "表示可能な直属の部下はいません",
+      "choosePerson": "従業員を選択して報告関係を表示",
+      "tabs": {
+        "employees": "従業員",
+        "teams": "チーム",
+        "chart": "組織図"
+      },
+      "search": {
+        "label": "メンバーを検索",
+        "placeholder": "氏名、業務メール、部署、役職",
+        "submit": "検索"
+      },
+      "error": {
+        "title": "ディレクトリを利用できません",
+        "description": "ディレクトリを読み込めません。アクセスを確認するか再試行してください。"
+      },
+      "empty": {
+        "title": "メンバーが見つかりません",
+        "description": "一致する有効な在職者データがありません。管理者に同期の確認を依頼してください。"
+      }
     }
   }
 }

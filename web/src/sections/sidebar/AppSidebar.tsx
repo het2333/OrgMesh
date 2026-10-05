@@ -79,6 +79,7 @@ import {
   SvgSettings,
   SvgHome,
   SvgSearch,
+  SvgUsers,
 } from "@opal/icons";
 import SidebarTabSkeleton from "@/refresh-components/skeletons/SidebarTabSkeleton";
 import BuildModeIntroBackground from "@/app/craft/components/IntroBackground";
@@ -637,6 +638,16 @@ export default function AppSidebar() {
             selected={activeSidebarTab.isMoreAgents()}
           >
             {tw("agents")}
+          </SidebarTab>
+          <SidebarTab
+            icon={SvgUsers}
+            href="/app/people"
+            selected={pathname.startsWith("/app/people")}
+            onClick={() => {
+              if (isMobile) setFolded(true);
+            }}
+          >
+            {tw("people.title")}
           </SidebarTab>
           <SidebarTab
             icon={SvgBlocks}

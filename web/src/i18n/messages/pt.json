@@ -14484,6 +14484,51 @@
       "saveGlossary": "Save glossary",
       "saved": "Saved successfully.",
       "failed": "Action failed. Check the field format, app permissions, and service logs."
+    },
+    "people": {
+      "title": "Pessoas",
+      "description": "Encontre colegas, equipes e relações hierárquicas verificadas",
+      "retry": "Tentar novamente",
+      "loading": "Carregando diretório…",
+      "unnamed": "Nome não informado",
+      "notProvided": "Não informado",
+      "unnamedTeam": "Nome da equipe não informado",
+      "previous": "Anterior",
+      "next": "Próxima",
+      "page": "Página {page} · {total} registros",
+      "profile": "Perfil do funcionário",
+      "closeProfile": "Fechar perfil",
+      "knowledgeSearch": "Pesquisar conhecimento da empresa",
+      "knowledgeDescription": "Pesquisa normal com as permissões dos documentos. Não garante a autoria.",
+      "manager": "Gestor",
+      "managerUnavailable": "Gestor não informado ou indisponível",
+      "openChart": "Abrir organograma",
+      "allTeams": "Todas as equipes",
+      "members": "{count} membros",
+      "departmentFilter": "Filtrar por departamento",
+      "relationshipWarning": "Algumas relações estão ausentes, são cíclicas ou profundas demais para exibição segura.",
+      "collapse": "Recolher subordinados",
+      "expand": "Expandir subordinados",
+      "noReports": "Nenhum subordinado direto visível",
+      "choosePerson": "Selecione um funcionário para explorar as relações hierárquicas",
+      "tabs": {
+        "employees": "Funcionários",
+        "teams": "Equipes",
+        "chart": "Organograma"
+      },
+      "search": {
+        "label": "Pesquisar pessoas",
+        "placeholder": "Nome, e-mail profissional, departamento ou cargo",
+        "submit": "Pesquisar"
+      },
+      "error": {
+        "title": "Diretório indisponível",
+        "description": "Não foi possível carregar o diretório. Verifique o acesso ou tente novamente."
+      },
+      "empty": {
+        "title": "Nenhuma pessoa encontrada",
+        "description": "Não há dados ativos e válidos correspondentes. Peça ao administrador para verificar a sincronização."
+      }
     }
   }
 }

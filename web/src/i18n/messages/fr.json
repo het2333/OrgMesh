@@ -14484,6 +14484,51 @@
       "saveGlossary": "Save glossary",
       "saved": "Saved successfully.",
       "failed": "Action failed. Check the field format, app permissions, and service logs."
+    },
+    "people": {
+      "title": "Personnes",
+      "description": "Trouvez des collègues, des équipes et des liens hiérarchiques vérifiés",
+      "retry": "Réessayer",
+      "loading": "Chargement de l’annuaire…",
+      "unnamed": "Nom non fourni",
+      "notProvided": "Non fourni",
+      "unnamedTeam": "Nom d’équipe non fourni",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "page": "Page {page} · {total} entrées",
+      "profile": "Profil de l’employé",
+      "closeProfile": "Fermer le profil",
+      "knowledgeSearch": "Rechercher les connaissances de l’entreprise",
+      "knowledgeDescription": "Recherche normale avec les droits d’accès aux documents. L’auteur n’est pas garanti.",
+      "manager": "Responsable",
+      "managerUnavailable": "Responsable non fourni ou indisponible",
+      "openChart": "Ouvrir l’organigramme",
+      "allTeams": "Toutes les équipes",
+      "members": "{count} membres",
+      "departmentFilter": "Filtrer par service",
+      "relationshipWarning": "Certains liens hiérarchiques manquent, sont cycliques ou trop profonds pour être affichés en sécurité.",
+      "collapse": "Réduire les subordonnés",
+      "expand": "Développer les subordonnés",
+      "noReports": "Aucun subordonné direct visible",
+      "choosePerson": "Sélectionnez un employé pour explorer les liens hiérarchiques",
+      "tabs": {
+        "employees": "Employés",
+        "teams": "Équipes",
+        "chart": "Organigramme"
+      },
+      "search": {
+        "label": "Rechercher des personnes",
+        "placeholder": "Nom, e-mail professionnel, service ou poste",
+        "submit": "Rechercher"
+      },
+      "error": {
+        "title": "Annuaire indisponible",
+        "description": "Impossible de charger l’annuaire. Vérifiez l’accès ou réessayez."
+      },
+      "empty": {
+        "title": "Aucune personne trouvée",
+        "description": "Aucune donnée active et valide ne correspond. Demandez à votre administrateur de vérifier la synchronisation."
+      }
     }
   }
 }
