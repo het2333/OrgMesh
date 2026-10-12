@@ -51,6 +51,7 @@ export interface FeatureFlags {
   opensearchEnabled: boolean;
   queryHistoryEnabled: boolean;
   craftAvailable: boolean;
+  orgmeshUsageEnabled?: boolean;
 }
 
 /**
@@ -386,6 +387,36 @@ export const ADMIN_ROUTES = {
     visibleWhen: null,
   },
 
+  ORGMESH_BRANDING: {
+    path: "/admin/orgmesh-enterprise/branding",
+    icon: SvgPaintBrush,
+    title: "OrgMesh Branding",
+    sidebarLabel: "OrgMesh Branding",
+    requiredPermission: Permission.FULL_ADMIN_PANEL_ACCESS,
+    section: "Organization",
+    requiredTier: null,
+    visibleWhen: null,
+  },
+  ORGMESH_AUDIT: {
+    path: "/admin/orgmesh-enterprise/audit",
+    icon: SvgHistory,
+    title: "OrgMesh Audit",
+    sidebarLabel: "OrgMesh Audit",
+    requiredPermission: Permission.FULL_ADMIN_PANEL_ACCESS,
+    section: "Organization",
+    requiredTier: null,
+    visibleWhen: null,
+  },
+  ORGMESH_USAGE: {
+    path: "/admin/orgmesh-enterprise/usage",
+    icon: SvgPieChart,
+    title: "OrgMesh Usage",
+    sidebarLabel: "OrgMesh Usage",
+    requiredPermission: Permission.FULL_ADMIN_PANEL_ACCESS,
+    section: "Organization",
+    requiredTier: null,
+    visibleWhen: (flags: FeatureFlags) => flags.orgmeshUsageEnabled === true,
+  },
   // ── Organization ──────────────────────────────────────────────────
   BILLING: {
     path: "/admin/billing",

@@ -19,6 +19,7 @@ import {
 import { hasAnyAdminPermission } from "@/lib/permissions";
 import { usePostHog } from "posthog-js/react";
 import { isAuthStatusError } from "@/lib/fetcher";
+import { useEnterpriseCacheLifecycle } from "@/lib/orgmesh-enterprise/hooks";
 import { useSettings } from "@/lib/settings/hooks";
 import { useCurrentUser } from "@/lib/users/hooks";
 import { useAuthTypeMetadata, useTokenRefresh } from "@/lib/auth/hooks";
@@ -90,6 +91,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const { user: fetchedUser, mutateUser, userError } = useCurrentUser();
+  useEnterpriseCacheLifecycle(fetchedUser?.id);
   // undefined = in flight. An error counts as resolved, so a failed load fails closed.
   const isUserLoading = fetchedUser === undefined && userError === undefined;
   // Permissions read the fetch result, not `upToDateUser`: that copy lands one render late,

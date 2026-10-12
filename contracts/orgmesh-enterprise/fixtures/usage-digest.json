@@ -1,0 +1,73 @@
+{
+  "lease": {
+    "status": "ready",
+    "revision": 7,
+    "activated_at": "2026-10-12T12:00:00Z",
+    "collection_start": "2026-10-13T00:00:00Z",
+    "coverage": {
+      "from": "2026-10-13T00:00:00Z",
+      "to": "2026-10-14T00:00:00Z"
+    },
+    "expires_at": "2026-10-13T12:00:45Z"
+  },
+  "batch": {
+    "index": 0,
+    "rows": [
+      {
+        "source_row_id": 1,
+        "actor_kind": "USER",
+        "user_id": null,
+        "system_attribution": null,
+        "window_start": "2026-10-13T00:00:00Z",
+        "model": "模型😀<>& é",
+        "flow": "chat",
+        "provider": "",
+        "incognito": true,
+        "input_tokens": 9223372036854775807,
+        "output_tokens": 5,
+        "cache_read_tokens": 4,
+        "cache_creation_tokens": 2,
+        "cost_cents": "123456789012.123456"
+      },
+      {
+        "source_row_id": 2,
+        "actor_kind": "SYSTEM",
+        "user_id": null,
+        "system_attribution": "ATTRIBUTED",
+        "window_start": "2026-10-13T00:00:00Z",
+        "model": "model",
+        "flow": "chat",
+        "provider": "",
+        "incognito": false,
+        "input_tokens": 10,
+        "output_tokens": 5,
+        "cache_read_tokens": 4,
+        "cache_creation_tokens": 2,
+        "cost_cents": "0.000001"
+      }
+    ],
+    "digest": "4033481101752459c8ae6026a8f848fba74ae4bdff4a345460074f47de2d3b39"
+  },
+  "ack": {
+    "index": 0,
+    "digest": "4033481101752459c8ae6026a8f848fba74ae4bdff4a345460074f47de2d3b39",
+    "row_count": 2,
+    "byte_count": 742
+  },
+  "manifest": {
+    "complete": true,
+    "batches": [
+      {
+        "index": 0,
+        "digest": "4033481101752459c8ae6026a8f848fba74ae4bdff4a345460074f47de2d3b39",
+        "row_count": 2,
+        "byte_count": 742
+      }
+    ],
+    "total_rows": 2,
+    "total_bytes": 742,
+    "digest": "4481da090ed44fa49b3135c7aedeed1da293427ccb8bf0f4753939814987ba55"
+  },
+  "batch_preimage_hex": "6f72676d6573682e75736167652e62617463682e7631000000000130000000013200000001310000000455534552ffffffffffffffff00000014323032362d31302d31335430303a30303a30305a00000012e6a8a1e59e8bf09f98803c3e26e280a8c3a900000004636861740000000000000004747275650000001339323233333732303336383534373735383037000000013500000001340000000132000000133132333435363738393031322e31323334353600000001320000000653595354454dffffffff0000000a4154545249425554454400000014323032362d31302d31335430303a30303a30305a000000056d6f64656c0000000463686174000000000000000566616c736500000002313000000001350000000134000000013200000008302e303030303031",
+  "manifest_preimage_hex": "6f72676d6573682e75736167652e6d616e69666573742e763100000000013700000014323032362d31302d31335430303a30303a30305a00000014323032362d31302d31345430303a30303a30305a0000000474727565000000013200000003373432000000013100000001300000004034303333343831313031373532343539633861653630323661386638343866626137346165346264666634613334353436303037346634376465326433623339000000013200000003373432"
+}

@@ -64,7 +64,11 @@ import {
   SvgTrash,
   SvgX,
 } from "@opal/icons";
-import { useIsSearchModeAvailable, useSettings } from "@/lib/settings/hooks";
+import {
+  useEnterpriseSettings,
+  useIsSearchModeAvailable,
+  useSettings,
+} from "@/lib/settings/hooks";
 import type { AppMode } from "@/providers/QueryControllerProvider";
 import { useAppDocumentTitle, useCustomFooterContent } from "@/lib/app/hooks";
 import { useAppPosition } from "@/lib/position/hooks";
@@ -123,7 +127,8 @@ function Header() {
   } = useChatSessions();
   const router = useRouter();
 
-  const customHeaderContent = settings.enterprise?.custom_header_content;
+  const { data: enterprisePolicy } = useEnterpriseSettings();
+  const customHeaderContent = enterprisePolicy?.custom_header_content;
   const pageWithHeaderContent =
     appPosition.isChat() || appPosition.isNewSession() || appPosition.isAgent();
 

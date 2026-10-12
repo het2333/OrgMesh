@@ -1,8 +1,8 @@
 "use client";
 
 import { Modal } from "@opal/components";
-import { useSettings } from "@/lib/settings/hooks";
-import { Button } from "@opal/components";
+import { useEnterpriseSettings, useSettings } from "@/lib/settings/hooks";
+import { Button, IconLoader, Text as OpalText } from "@opal/components";
 import Text from "@/refresh-components/texts/Text";
 import { FormField } from "@/refresh-components/form/FormField";
 import { InputCheckbox } from "@opal/components";
@@ -10,29 +10,16 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { transformLinkUri } from "@/lib/utils";
-import { SvgAlertCircle } from "@opal/icons";
-import { SvgOnyxLogo } from "@opal/logos";
+
 import type { IconProps } from "@opal/types";
 import { useTranslations } from "next-intl";
 
 const ALL_USERS_INITIAL_POPUP_FLOW_COMPLETED =
   "allUsersInitialPopupFlowCompleted";
 
-const CustomLogoHeaderIcon = ({ className, size = 24 }: IconProps) => {
-  const t = useTranslations("chat.popup");
-
-  return (
-    <img
-      src="/api/enterprise-settings/logo"
-      alt={t("logoIcon.alt")}
-      style={{ width: size, height: size, objectFit: "contain" }}
-      className={className}
-    />
-  );
-};
-
 export function AppPopup() {
   const t = useTranslations("chat.popup");
+  const policyText = useTranslations("orgmeshEnterprise.common");
   const [completedFlow, setCompletedFlow] = useState(true);
   const [showConsentError, setShowConsentError] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
@@ -44,44 +31,62 @@ export function AppPopup() {
   }, []);
 
   const settings = useSettings();
-  const isConsentScreen = settings.enterprise?.enable_consent_screen;
+  const policy = useEnterpriseSettings();
+  const enterprise = policy.data;
+  const isConsentScreen = enterprise?.enable_consent_screen;
+
+  if (policy.isEnabled && (policy.isLoading || policy.error)) {
+    return (
+      <Modal open onOpenChange={() => {}}>
+        <Modal.Content width="sm">
+          <Modal.Header
+            title={t("header.title", { appName: settings.appName })}
+          />
+          <Modal.Body>
+            {policy.isLoading ? <IconLoader /> : null}
+            <OpalText as="p" role={policy.error ? "alert" : "status"}>
+              {policy.error ? policyText("unavailable") : policyText("loading")}
+            </OpalText>
+            {policy.error ? (
+              <Button onClick={() => void policy.mutate()}>
+                {policyText("reload")}
+              </Button>
+            ) : null}
+          </Modal.Body>
+        </Modal.Content>
+      </Modal>
+    );
+  }
 
   if (
-    !settings.enterprise?.custom_popup_content ||
+    !enterprise?.custom_popup_content ||
     completedFlow ||
-    !settings.enterprise?.show_first_visit_notice
+    !enterprise?.show_first_visit_notice
   ) {
     return null;
   }
 
-  const popupTitle = settings.enterprise?.custom_popup_header;
+  const popupTitle = enterprise?.custom_popup_header;
 
-  const popupContent = settings.enterprise?.custom_popup_content;
+  const popupContent = enterprise?.custom_popup_content;
 
-  const hasApplicationName = Boolean(
-    settings.enterprise?.application_name?.trim()
-  );
-  const hasCustomLogo = Boolean(settings.enterprise?.use_custom_logo);
-  const logoDisplayStyle = settings.enterprise?.logo_display_style;
-
-  // Header icon rules:
-  // - If neither app name nor custom logo exists -> show Onyx icon
-  // - If logo display is "name_only" -> show alert icon
-  // - Otherwise -> show uploaded custom logo (fallback to Onyx icon)
-  const headerIcon =
-    !hasApplicationName && !hasCustomLogo
-      ? (props: IconProps) => <SvgOnyxLogo size={24} {...props} />
-      : logoDisplayStyle === "name_only"
-        ? SvgAlertCircle
-        : hasCustomLogo
-          ? CustomLogoHeaderIcon
-          : (props: IconProps) => <SvgOnyxLogo size={24} {...props} />;
+  function HeaderIcon({ className, size = 24 }: IconProps) {
+    return (
+      <img
+        src={settings.logoUrl ?? "/orgmesh.svg"}
+        alt={t("logoIcon.alt")}
+        width={size}
+        height={size}
+        className={className}
+      />
+    );
+  }
 
   return (
     <Modal open onOpenChange={() => {}}>
       <Modal.Content width="sm" height="lg">
         <Modal.Header
-          icon={headerIcon}
+          icon={HeaderIcon}
           title={popupTitle || t("header.title", { appName: settings.appName })}
         />
         <Modal.Body>
@@ -123,7 +128,7 @@ export function AppPopup() {
             >
               {popupContent}
             </ReactMarkdown>
-            {isConsentScreen && settings.enterprise?.consent_screen_prompt && (
+            {isConsentScreen && enterprise?.consent_screen_prompt && (
               <FormField
                 state={showConsentError ? "error" : "idle"}
                 className="mt-6"
@@ -174,7 +179,7 @@ export function AppPopup() {
                       remarkPlugins={[remarkGfm]}
                       urlTransform={transformLinkUri}
                     >
-                      {settings.enterprise.consent_screen_prompt}
+                      {enterprise.consent_screen_prompt}
                     </ReactMarkdown>
                   </FormField.Label>
                 </div>

@@ -515,7 +515,9 @@ def _safe_close_session(session: Session) -> None:
 
 
 @contextmanager
-def get_session_with_tenant(*, tenant_id: str) -> Generator[Session, None, None]:
+def get_session_with_tenant(
+    *, tenant_id: str, snapshot_deadline: float | None = None
+) -> Generator[Session, None, None]:
     """
     Generate a database session for a specific tenant.
 
@@ -527,6 +529,29 @@ def get_session_with_tenant(*, tenant_id: str) -> Generator[Session, None, None]
         raise HTTPException(status_code=400, detail="Invalid tenant ID")
 
     engine = get_engine_for_tenant(tenant_id)
+
+    if snapshot_deadline is not None:
+        from onyx.db.engine.orgmesh_snapshot import (
+            bounded_snapshot_engine,
+            remaining_seconds,
+        )
+
+        bounded_engine = bounded_snapshot_engine(engine, deadline=snapshot_deadline)
+        try:
+            with bounded_engine.connect().execution_options(
+                schema_translate_map={None: tenant_id},
+                isolation_level="REPEATABLE READ",
+                postgresql_readonly=True,
+            ) as connection:
+                remaining_seconds(snapshot_deadline)
+                session = Session(bind=connection, expire_on_commit=False)
+                try:
+                    yield session
+                finally:
+                    _safe_close_session(session)
+        finally:
+            bounded_engine.dispose()
+        return
 
     # no need to use the schema translation map for self-hosted + default schema
     if not MULTI_TENANT and tenant_id == POSTGRES_DEFAULT_SCHEMA_STANDARD_VALUE:

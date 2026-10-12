@@ -28,7 +28,7 @@ import {
 } from "@/lib/languageModels/utils";
 import { ChatSession } from "@/app/app/interfaces";
 import { Credential } from "./connectors/credentials";
-import { useSettings } from "@/lib/settings/hooks";
+import { useEnterpriseSettings, useSettings } from "@/lib/settings/hooks";
 import { MinimalAgent } from "@/lib/agents/types";
 import {
   DefaultModel,
@@ -907,10 +907,10 @@ export const useUserGroups = (): {
   error: string;
   refreshUserGroups: () => void;
 } => {
-  const settings = useSettings();
+  const settings = useEnterpriseSettings();
   const isLoading = settings.isLoading;
   const isPaidEnterpriseFeaturesEnabled =
-    !isLoading && settings.enterprise !== null;
+    settings.isEnabled && !isLoading && !settings.error && !!settings.data;
 
   const swrResponse = useSWR<UserGroup[]>(
     isPaidEnterpriseFeaturesEnabled ? SWR_KEYS.adminUserGroups : null,

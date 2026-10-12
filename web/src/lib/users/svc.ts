@@ -1,4 +1,5 @@
 import { mutate } from "swr";
+import { isEnterprisePrivateKey } from "@/lib/orgmesh-enterprise/svc";
 import { User, UserPersonalization } from "@/lib/types";
 import { SWR_KEYS } from "@/lib/swr-keys";
 import { CustomRefreshTokenResponse } from "@/lib/users/types";
@@ -26,6 +27,7 @@ export async function logout(): Promise<Response> {
   if (response.ok) {
     // Drop the cached /api/me so any subsequent useCurrentUser read does not
     // hand callers the just-signed-out user from the SWR dedup window.
+    await mutate(isEnterprisePrivateKey, undefined, { revalidate: false });
     await mutate(SWR_KEYS.me, null, { revalidate: false });
   }
   return response;

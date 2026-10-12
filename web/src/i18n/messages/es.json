@@ -13491,6 +13491,15 @@
         },
         "webSearch": {
           "label": "Búsqueda web"
+        },
+        "orgmeshBranding": {
+          "label": "Marca de OrgMesh"
+        },
+        "orgmeshAudit": {
+          "label": "Auditoría de OrgMesh"
+        },
+        "orgmeshUsage": {
+          "label": "Uso de OrgMesh"
         }
       },
       "sections": {
@@ -14529,6 +14538,106 @@
         "title": "No se encontraron personas",
         "description": "No hay datos activos y vigentes que coincidan. Pide al administrador que revise la sincronización."
       }
+    }
+  },
+  "orgmeshEnterprise": {
+    "common": {
+      "accessRequired": "Se requiere acceso completo de administrador.",
+      "loading": "Cargando…",
+      "unavailable": "Este servicio no está disponible. Inténtalo de nuevo.",
+      "reload": "Recargar",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "disabled": "Esta función está desactivada. La marca estática sigue disponible.",
+      "authInterrupted": "Tu sesión ha cambiado. Inicia sesión de nuevo antes de guardar.",
+      "failed": "La solicitud falló. Tus cambios se conservan."
+    },
+    "branding": {
+      "title": "Marca de OrgMesh",
+      "description": "Configura el nombre y el saludo de la aplicación. Solo se permiten logotipos locales revisados.",
+      "name": {
+        "label": "Nombre de la aplicación",
+        "help": "Usa de 1 a 50 caracteres de texto sin formato."
+      },
+      "greeting": {
+        "label": "Saludo",
+        "help": "Opcional. Usa hasta 120 caracteres de texto sin formato."
+      },
+      "logo": {
+        "label": "Logotipo revisado",
+        "description": "Predeterminado de OrgMesh"
+      },
+      "version": "Versión {version}",
+      "static": "Marca estática",
+      "dynamic": "Marca guardada",
+      "conflict": "Otro administrador cambió la marca. Tus cambios se conservan. Recarga para revisar la última versión; se descartarán estos cambios.",
+      "unavailable": "La marca no está disponible. Tus cambios se conservan. Inténtalo de nuevo o recarga.",
+      "validation": "Introduce un nombre de 1 a 50 caracteres y un saludo de hasta 120. Usa texto sin formato, sin HTML ni caracteres de control.",
+      "saved": "Marca guardada."
+    },
+    "audit": {
+      "title": "Auditoría de OrgMesh",
+      "description": "Consulta los cambios de marca de esta organización. Los eventos contienen nombres de campos y versiones, no el saludo completo.",
+      "empty": "No hay cambios de marca en este intervalo.",
+      "rangeError": "Elige un intervalo válido de hasta 90 días.",
+      "start": "Inicio (UTC)",
+      "end": "Fin (UTC)",
+      "action": "Acción",
+      "allActions": "Todas las acciones",
+      "created": "Marca creada",
+      "updated": "Marca actualizada",
+      "result": "Resultado",
+      "allResults": "Todos los resultados",
+      "success": "Éxito",
+      "apply": "Aplicar filtros",
+      "next": "Página siguiente",
+      "first": "Primera página",
+      "time": "Hora",
+      "actor": "Actor",
+      "resource": "Recurso",
+      "versions": "Versiones {before} → {after}",
+      "fields": "Campos modificados: {fields}",
+      "request": "ID de solicitud: {id}",
+      "fieldName": "Nombre",
+      "fieldGreeting": "Saludo",
+      "fieldLogo": "Recurso del logotipo",
+      "resourceName": "Configuración de marca",
+      "actorKind": "Usuario {id}"
+    },
+    "usage": {
+      "title": "Uso de OrgMesh",
+      "description": "Consulta el uso agregado publicado de esta organización. Elige días UTC completos, incluida la fecha final.",
+      "start": "Fecha de inicio (UTC)",
+      "end": "Fecha final (UTC, incluida)",
+      "groupBy": "Agrupar por",
+      "day": "Día",
+      "model": "Modelo",
+      "flow": "Flujo",
+      "apply": "Aplicar fechas",
+      "rangeError": "Elige días completos de las últimas 90 fechas UTC, con el inicio anterior o igual al final.",
+      "disabled": "Esta función está desactivada.",
+      "unavailable": "No hay una instantánea de uso publicada. Reduce el intervalo o elige la agrupación diaria y vuelve a cargar.",
+      "waiting": "Esperando el primer día UTC completo y su publicación. El día de activación se excluye.",
+      "empty": "No hay uso en este intervalo publicado.",
+      "groups": "Grupos de uso",
+      "activatedAt": "Activación (UTC): {time}",
+      "collectionStart": "La recopilación empieza el {time} (UTC). Se excluyen las fechas anteriores.",
+      "coverage": "Cobertura publicada (UTC, final excluido): {start} – {end}",
+      "publishedAt": "Última publicación (UTC): {time}",
+      "stale": "Datos antiguos. Se muestra la instantánea de la sesión actual publicada el {time} (UTC).",
+      "intraday": "Los valores de hoy son agregados diarios de la fuente al publicarse, no intervalos exactos dentro del día.",
+      "pricingNotice": "Centavos de dólar estimados por la fuente; 0 puede indicar que falta el precio. No son cargos liquidados.",
+      "categoryNotice": "Las estimaciones de usuario y sistema permanecen separadas porque los costos de origen pueden superponerse.",
+      "user": "Usuario",
+      "incognitoUser": "Usuario de incógnito",
+      "systemAttributed": "Sistema atribuido",
+      "systemUnattributed": "Sistema sin atribuir",
+      "inputTokens": "Tokens de entrada: {value}",
+      "outputTokens": "Tokens de salida: {value}",
+      "totalTokens": "Tokens totales: {value}",
+      "cacheReadTokens": "Tokens de lectura de caché: {value}",
+      "cacheCreationTokens": "Tokens de creación de caché: {value}",
+      "cost": "Costo estimado (centavos USD): {value}"
     }
   }
 }

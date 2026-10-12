@@ -15,6 +15,9 @@ from onyx.configs.app_configs import APP_API_PREFIX
 from onyx.utils.variable_functionality import fetch_ee_implementation_or_noop
 
 PUBLIC_ENDPOINT_SPECS = [
+    # Public phase-one capabilities and reviewed branding contain no user data.
+    ("/orgmesh-enterprise/v1/capabilities", {"GET"}),
+    ("/orgmesh-enterprise/v1/branding", {"GET"}),
     # Private Presenton relay authenticates scoped HMAC bearer tokens and rechecks RBAC.
     ("/orgmesh/presenton/llm/v1/chat/completions", {"POST"}),
     # Built-in API docs / schema. These routes only exist when ENABLE_PUBLIC_DOCS

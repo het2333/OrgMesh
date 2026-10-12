@@ -13491,6 +13491,15 @@
         },
         "webSearch": {
           "label": "网页搜索"
+        },
+        "orgmeshBranding": {
+          "label": "OrgMesh 品牌"
+        },
+        "orgmeshAudit": {
+          "label": "OrgMesh 审计"
+        },
+        "orgmeshUsage": {
+          "label": "OrgMesh 用量"
         }
       },
       "sections": {
@@ -14529,6 +14538,106 @@
         "title": "没有找到人员",
         "description": "没有匹配的有效在职目录数据，请联系管理员检查通讯录同步"
       }
+    }
+  },
+  "orgmeshEnterprise": {
+    "common": {
+      "accessRequired": "需要完整管理员权限。",
+      "loading": "正在加载…",
+      "unavailable": "服务暂不可用，请重试。",
+      "reload": "重新加载",
+      "cancel": "取消",
+      "save": "保存",
+      "disabled": "此功能已关闭，静态品牌仍可使用。",
+      "authInterrupted": "会话已改变，请重新登录后再保存。",
+      "failed": "请求失败，您的修改仍已保留。"
+    },
+    "branding": {
+      "title": "OrgMesh 品牌",
+      "description": "设置应用名称与欢迎语，只能使用已审核的本地标识。",
+      "name": {
+        "label": "应用名称",
+        "help": "使用 1–50 个纯文本字符。"
+      },
+      "greeting": {
+        "label": "欢迎语",
+        "help": "可选，最多 120 个纯文本字符。"
+      },
+      "logo": {
+        "label": "已审核标识",
+        "description": "OrgMesh 默认标识"
+      },
+      "version": "版本 {version}",
+      "static": "静态品牌",
+      "dynamic": "已保存品牌",
+      "conflict": "另一位管理员修改了品牌，您的编辑仍已保留。重新加载可查看最新版本，但会丢弃这些编辑。",
+      "unavailable": "品牌服务暂不可用，您的编辑仍已保留。请重试或重新加载。",
+      "validation": "名称需要 1–50 个字符，欢迎语最多 120 个字符。请使用纯文本，不要使用 HTML 或控制字符。",
+      "saved": "品牌已保存。"
+    },
+    "audit": {
+      "title": "OrgMesh 审计",
+      "description": "查看本组织的品牌变更。事件包含字段名称与版本，不包含完整欢迎语。",
+      "empty": "此时间范围内没有品牌变更。",
+      "rangeError": "请选择有效且不超过 90 天的时间范围。",
+      "start": "开始时间（UTC）",
+      "end": "结束时间（UTC）",
+      "action": "操作",
+      "allActions": "所有操作",
+      "created": "创建品牌",
+      "updated": "更新品牌",
+      "result": "结果",
+      "allResults": "所有结果",
+      "success": "成功",
+      "apply": "应用筛选",
+      "next": "下一页",
+      "first": "第一页",
+      "time": "时间",
+      "actor": "操作者",
+      "resource": "资源",
+      "versions": "版本 {before} → {after}",
+      "fields": "变更字段：{fields}",
+      "request": "请求 ID：{id}",
+      "fieldName": "名称",
+      "fieldGreeting": "欢迎语",
+      "fieldLogo": "标识资源",
+      "resourceName": "品牌配置",
+      "actorKind": "用户 {id}"
+    },
+    "usage": {
+      "title": "OrgMesh 用量",
+      "description": "查看本组织已发布的聚合用量。选择完整 UTC 日期，包含结束日期。",
+      "start": "开始日期（UTC）",
+      "end": "结束日期（UTC，含当天）",
+      "groupBy": "分组方式",
+      "day": "日期",
+      "model": "模型",
+      "flow": "流程",
+      "apply": "应用日期",
+      "rangeError": "请选择最近90个UTC日期内的完整日期，开始日期不得晚于结束日期。",
+      "disabled": "此功能已关闭。",
+      "unavailable": "暂无已发布的用量快照。请缩小日期范围或按日期分组后重新加载。",
+      "waiting": "等待首个完整UTC日期及其数据发布。启用当天不计入。",
+      "empty": "已发布范围内没有用量。",
+      "groups": "用量分组",
+      "activatedAt": "启用时间（UTC）：{time}",
+      "collectionStart": "采集从{time}（UTC）开始，更早日期不计入。",
+      "coverage": "已发布覆盖范围（UTC，不含结束时间）：{start} 至 {end}",
+      "publishedAt": "最后发布时间（UTC）：{time}",
+      "stale": "数据已陈旧。显示当前会话于{time}（UTC）发布的快照。",
+      "intraday": "当天数值是截至发布时的来源日聚合，不代表精确的日内事件区间。",
+      "pricingNotice": "来源估算费用，单位为美元美分；0可能表示缺少定价，并非已结算费用。",
+      "categoryNotice": "用户和系统的来源费用可能重叠，因此分别显示。",
+      "user": "用户",
+      "incognitoUser": "隐身用户",
+      "systemAttributed": "可归属系统",
+      "systemUnattributed": "不可归属系统",
+      "inputTokens": "输入Token：{value}",
+      "outputTokens": "输出Token：{value}",
+      "totalTokens": "总Token：{value}",
+      "cacheReadTokens": "缓存读取Token：{value}",
+      "cacheCreationTokens": "缓存创建Token：{value}",
+      "cost": "估算费用（美元美分）：{value}"
     }
   }
 }

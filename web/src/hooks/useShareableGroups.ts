@@ -2,7 +2,7 @@
 
 import useSWR, { mutate } from "swr";
 import { errorHandlingFetcher } from "@/lib/fetcher";
-import { useSettings } from "@/lib/settings/hooks";
+import { useEnterpriseSettings } from "@/lib/settings/hooks";
 import { SWR_KEYS } from "@/lib/swr-keys";
 
 export interface MinimalUserGroupSnapshot {
@@ -14,9 +14,12 @@ export interface MinimalUserGroupSnapshot {
 // Refactor this hook to live inside of a special `ee` directory.
 
 export default function useShareableGroups() {
-  const settings = useSettings();
+  const settings = useEnterpriseSettings();
   const isPaidEnterpriseFeaturesEnabled =
-    !settings.isLoading && settings.enterprise !== null;
+    settings.isEnabled &&
+    !settings.isLoading &&
+    !settings.error &&
+    !!settings.data;
 
   const { data, error, isLoading } = useSWR<MinimalUserGroupSnapshot[]>(
     isPaidEnterpriseFeaturesEnabled ? SWR_KEYS.shareableGroups : null,

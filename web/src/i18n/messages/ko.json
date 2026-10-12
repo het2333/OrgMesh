@@ -13491,6 +13491,15 @@
         },
         "webSearch": {
           "label": "웹 검색"
+        },
+        "orgmeshBranding": {
+          "label": "OrgMesh 브랜드"
+        },
+        "orgmeshAudit": {
+          "label": "OrgMesh 감사"
+        },
+        "orgmeshUsage": {
+          "label": "OrgMesh 사용량"
         }
       },
       "sections": {
@@ -14529,6 +14538,106 @@
         "title": "구성원을 찾을 수 없음",
         "description": "일치하는 유효 재직자 데이터가 없습니다. 관리자에게 동기화 확인을 요청하세요."
       }
+    }
+  },
+  "orgmeshEnterprise": {
+    "common": {
+      "accessRequired": "전체 관리자 권한이 필요합니다.",
+      "loading": "불러오는 중…",
+      "unavailable": "서비스를 사용할 수 없습니다. 다시 시도하세요.",
+      "reload": "새로고침",
+      "cancel": "취소",
+      "save": "저장",
+      "disabled": "이 기능은 꺼져 있습니다. 정적 브랜드는 계속 사용할 수 있습니다.",
+      "authInterrupted": "세션이 변경되었습니다. 저장 전에 다시 로그인하세요.",
+      "failed": "요청에 실패했습니다. 변경 사항은 유지됩니다."
+    },
+    "branding": {
+      "title": "OrgMesh 브랜드",
+      "description": "앱 이름과 인사말을 설정합니다. 검토된 로컬 로고만 사용할 수 있습니다.",
+      "name": {
+        "label": "앱 이름",
+        "help": "일반 텍스트 1–50자를 사용하세요."
+      },
+      "greeting": {
+        "label": "인사말",
+        "help": "선택 사항입니다. 일반 텍스트를 최대 120자까지 사용하세요."
+      },
+      "logo": {
+        "label": "검토된 로고",
+        "description": "OrgMesh 기본값"
+      },
+      "version": "버전 {version}",
+      "static": "정적 브랜드",
+      "dynamic": "저장된 브랜드",
+      "conflict": "다른 관리자가 브랜드를 변경했습니다. 편집 내용은 유지됩니다. 최신 버전을 보려면 새로고침하세요. 편집 내용은 삭제됩니다.",
+      "unavailable": "브랜드를 사용할 수 없습니다. 편집 내용은 유지됩니다. 다시 시도하거나 새로고침하세요.",
+      "validation": "이름은 1–50자, 인사말은 최대 120자입니다. HTML이나 제어 문자가 없는 일반 텍스트를 사용하세요.",
+      "saved": "브랜드를 저장했습니다."
+    },
+    "audit": {
+      "title": "OrgMesh 감사",
+      "description": "이 조직의 브랜드 변경을 확인합니다. 이벤트에는 필드 이름과 버전이 포함되며 전체 인사말은 포함되지 않습니다.",
+      "empty": "이 기간에 브랜드 변경이 없습니다.",
+      "rangeError": "최대 90일의 유효한 기간을 선택하세요.",
+      "start": "시작 (UTC)",
+      "end": "종료 (UTC)",
+      "action": "작업",
+      "allActions": "모든 작업",
+      "created": "브랜드 생성",
+      "updated": "브랜드 업데이트",
+      "result": "결과",
+      "allResults": "모든 결과",
+      "success": "성공",
+      "apply": "필터 적용",
+      "next": "다음 페이지",
+      "first": "첫 페이지",
+      "time": "시간",
+      "actor": "실행자",
+      "resource": "리소스",
+      "versions": "버전 {before} → {after}",
+      "fields": "변경된 필드: {fields}",
+      "request": "요청 ID: {id}",
+      "fieldName": "이름",
+      "fieldGreeting": "인사말",
+      "fieldLogo": "로고 자산",
+      "resourceName": "브랜드 설정",
+      "actorKind": "사용자 {id}"
+    },
+    "usage": {
+      "title": "OrgMesh 사용량",
+      "description": "이 조직의 게시된 집계 사용량을 확인합니다. 종료일을 포함한 전체 UTC 날짜를 선택하세요.",
+      "start": "시작 날짜(UTC)",
+      "end": "종료 날짜(UTC, 당일 포함)",
+      "groupBy": "그룹 기준",
+      "day": "날짜",
+      "model": "모델",
+      "flow": "흐름",
+      "apply": "날짜 적용",
+      "rangeError": "최근 90개 UTC 날짜 내에서 시작 날짜가 종료 날짜보다 늦지 않도록 선택하세요.",
+      "disabled": "이 기능은 비활성화되어 있습니다.",
+      "unavailable": "게시된 사용량 스냅샷이 없습니다. 날짜 범위를 줄이거나 일별 그룹을 선택한 후 다시 불러오세요.",
+      "waiting": "첫 번째 전체 UTC 날짜와 게시를 기다리고 있습니다. 활성화 날짜는 제외됩니다.",
+      "empty": "이 게시된 범위에 사용량이 없습니다.",
+      "groups": "사용량 그룹",
+      "activatedAt": "활성화 시간(UTC): {time}",
+      "collectionStart": "수집 시작: {time}(UTC). 이전 날짜는 제외됩니다.",
+      "coverage": "게시된 범위(UTC, 종료 시간 제외): {start} – {end}",
+      "publishedAt": "마지막 게시 시간(UTC): {time}",
+      "stale": "오래된 데이터입니다. 현재 세션에서 {time}(UTC)에 게시된 스냅샷을 표시합니다.",
+      "intraday": "오늘 값은 게시 시점의 원본 일별 집계이며 정확한 일중 이벤트 구간이 아닙니다.",
+      "pricingNotice": "원본 추정 비용(미국 달러 센트)입니다. 0은 가격 정보 누락을 의미할 수 있습니다. 확정 청구액이 아닙니다.",
+      "categoryNotice": "원본 비용이 중복될 수 있어 사용자 및 시스템 추정치를 별도로 표시합니다.",
+      "user": "사용자",
+      "incognitoUser": "시크릿 사용자",
+      "systemAttributed": "귀속된 시스템",
+      "systemUnattributed": "귀속되지 않은 시스템",
+      "inputTokens": "입력 토큰: {value}",
+      "outputTokens": "출력 토큰: {value}",
+      "totalTokens": "총 토큰: {value}",
+      "cacheReadTokens": "캐시 읽기 토큰: {value}",
+      "cacheCreationTokens": "캐시 생성 토큰: {value}",
+      "cost": "추정 비용(미국 달러 센트): {value}"
     }
   }
 }

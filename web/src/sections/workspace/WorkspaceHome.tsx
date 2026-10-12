@@ -14,6 +14,7 @@ import {
   SvgSimpleLoader,
   SvgSparkle,
 } from "@opal/icons";
+import { useSettings } from "@/lib/settings/hooks";
 import { useUser } from "@/providers/UserProvider";
 import { useLLMProviders } from "@/lib/languageModels/hooks";
 import { hasVisibleLLMModel } from "@/lib/languageModels/utils";
@@ -28,6 +29,7 @@ export default function WorkspaceHome() {
   const formatter = useFormatter();
   const router = useRouter();
   const { user } = useUser();
+  const { appName, greeting } = useSettings();
   const {
     llmProviders,
     isLoading: modelsLoading,
@@ -72,9 +74,10 @@ export default function WorkspaceHome() {
           </Text>
         </div>
         <Text as="h1" font="heading-h1" color="text-05">
-          {t("home.greeting", {
-            name: user?.personalization?.name || t("brand"),
-          })}
+          {greeting ||
+            t("home.greeting", {
+              name: user?.personalization?.name || appName,
+            })}
         </Text>
         <Text as="p" font="main-content-muted" color="text-03">
           {t("home.description")}

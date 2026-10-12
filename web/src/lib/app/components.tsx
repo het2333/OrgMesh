@@ -7,8 +7,7 @@ import {
   NEXT_PUBLIC_DO_NOT_USE_TOGGLE_OFF_DANSWER_POWERED,
 } from "@/lib/constants";
 import { cn } from "@opal/utils";
-import Text from "@/refresh-components/texts/Text";
-import Truncated from "@/refresh-components/texts/Truncated";
+import { Text } from "@opal/components";
 import { SvgOnyxLogo, SvgOnyxLogoTyped } from "@opal/logos";
 
 export interface LogoProps {
@@ -23,9 +22,7 @@ export interface LogoProps {
 export function Logo({ folded, size, className, onyxBranded }: LogoProps) {
   const t = useTranslations("common");
   const resolvedSize = size ?? DEFAULT_LOGO_SIZE_PX;
-  const { enterprise, logoUrl } = useSettings();
-  const logoDisplayStyle = enterprise?.logo_display_style;
-  const applicationName = enterprise?.application_name;
+  const { appName, logoUrl } = useSettings();
 
   if (onyxBranded) {
     return folded ? (
@@ -54,52 +51,21 @@ export function Logo({ folded, size, className, onyxBranded }: LogoProps) {
     <SvgOnyxLogo size={resolvedSize} className={cn("shrink-0", className)} />
   );
 
-  const renderNameAndPoweredBy = (opts: {
-    includeLogo: boolean;
-    includeName: boolean;
-  }) => {
-    return (
-      <div className="flex min-w-0 gap-2">
-        {opts.includeLogo && logo}
-        {!folded && (
-          /* H3 text is 4px larger (28px) than the Logo icon (24px), so negative margin hack. */
-          <div className="flex flex-1 flex-col -mt-0.5">
-            {opts.includeName && (
-              <Truncated headingH3>{applicationName}</Truncated>
-            )}
-            {!NEXT_PUBLIC_DO_NOT_USE_TOGGLE_OFF_DANSWER_POWERED &&
-              !enterprise?.hide_onyx_branding && (
-                <Text
-                  secondaryBody
-                  text03
-                  className={"line-clamp-1 truncate"}
-                  nowrap
-                >
-                  {t("logo.poweredBy.label")}
-                </Text>
-              )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // Handle "logo_only" display style
-  if (logoDisplayStyle === "logo_only") {
-    return renderNameAndPoweredBy({ includeLogo: true, includeName: false });
-  }
-
-  // Handle "name_only" display style
-  if (logoDisplayStyle === "name_only") {
-    return renderNameAndPoweredBy({ includeLogo: false, includeName: true });
-  }
-
-  // Handle "logo_and_name" or default behavior
-  return applicationName ? (
-    renderNameAndPoweredBy({ includeLogo: true, includeName: true })
-  ) : folded ? (
-    <SvgOnyxLogo size={resolvedSize} className={cn("shrink-0", className)} />
-  ) : (
-    <SvgOnyxLogoTyped size={resolvedSize} className={className} />
+  return (
+    <div className="flex min-w-0 gap-2">
+      {logo}
+      {!folded && (
+        <div className="flex min-w-0 flex-col">
+          <Text font="heading-h3" maxLines={1}>
+            {appName}
+          </Text>
+          {!NEXT_PUBLIC_DO_NOT_USE_TOGGLE_OFF_DANSWER_POWERED && (
+            <Text font="secondary-body" color="text-03" maxLines={1}>
+              {t("logo.poweredBy.label")}
+            </Text>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

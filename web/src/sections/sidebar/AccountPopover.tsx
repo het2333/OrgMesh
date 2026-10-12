@@ -30,7 +30,7 @@ import { Content, toast, useSidebarFolded } from "@opal/layouts";
 import { Section } from "@/layouts/general-layouts";
 import { useAppPosition } from "@/lib/position/hooks";
 import useScreenSize from "@/hooks/useScreenSize";
-import { useSettings } from "@/lib/settings/hooks";
+import { useEnterpriseSettings, useSettings } from "@/lib/settings/hooks";
 import UserAvatar from "@/refresh-components/avatars/UserAvatar";
 import SidebarTabSkeleton from "@/refresh-components/skeletons/SidebarTabSkeleton";
 import { useNotificationSummary } from "@/hooks/useNotifications";
@@ -52,7 +52,7 @@ function SettingsPopover({
   const t = useTranslations("accountPopover");
   const { user, userResolution } = useUser();
   const settings = useSettings();
-  const enterpriseSettings = settings.enterprise;
+  const { data: enterpriseSettings } = useEnterpriseSettings();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

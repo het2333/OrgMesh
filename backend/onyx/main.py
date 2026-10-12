@@ -100,6 +100,9 @@ from onyx.server.features.oauth_config.api import (
     admin_router as admin_oauth_config_router,
 )
 from onyx.server.features.oauth_config.api import router as oauth_config_router
+from onyx.server.features.orgmesh_enterprise.api import (
+    router as orgmesh_enterprise_router,
+)
 from onyx.server.features.password.api import router as password_router
 from onyx.server.features.persona.api import admin_agents_router, agents_router
 from onyx.server.features.persona.api import admin_router as admin_persona_router
@@ -613,6 +616,7 @@ def get_application(lifespan_override: Lifespan | None = None) -> FastAPI:
     include_router_with_global_prefix_prepended(
         application, image_generation_admin_router
     )
+    include_router_with_global_prefix_prepended(application, orgmesh_enterprise_router)
     include_router_with_global_prefix_prepended(application, orgmesh_router)
     include_router_with_global_prefix_prepended(application, orgmesh_runtime_router)
     include_router_with_global_prefix_prepended(application, presenton_router)

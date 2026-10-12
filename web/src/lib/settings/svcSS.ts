@@ -5,13 +5,11 @@ import {
   Settings,
   QueryHistoryType,
 } from "@/lib/settings/types";
-import {
-  CUSTOM_ANALYTICS_ENABLED,
-  HOST_URL,
-  SERVER_SIDE_ONLY__PAID_ENTERPRISE_FEATURES_ENABLED,
-} from "@/lib/constants";
+import { HOST_URL } from "@/lib/constants";
 import { fetchSS } from "@/lib/utilsSS";
 import { getWebVersion } from "@/lib/version";
+import { fetchOrgMeshBrandingSS } from "@/lib/orgmesh-enterprise/svcSS";
+import { brandingLogoUrl } from "@/lib/orgmesh-enterprise/staticBranding";
 
 export async function fetchStandardSettingsSS(): Promise<Settings | null> {
   try {
@@ -33,32 +31,15 @@ export async function fetchEnterpriseSettingsSS(): Promise<EnterpriseSettings | 
   }
 }
 
-async function fetchCustomAnalyticsScriptSS(): Promise<string | null> {
-  try {
-    const response = await fetchSS(
-      "/enterprise-settings/custom-analytics-script"
-    );
-    if (!response?.ok) return null;
-    return response.json();
-  } catch {
-    return null;
-  }
-}
-
 export async function fetchSettingsSS(): Promise<CombinedSettings | null> {
   const settingsTask = fetchSS("/settings");
-  const enterpriseTask = SERVER_SIDE_ONLY__PAID_ENTERPRISE_FEATURES_ENABLED
-    ? fetchSS("/enterprise-settings")
-    : Promise.resolve(null);
-  const analyticsTask =
-    SERVER_SIDE_ONLY__PAID_ENTERPRISE_FEATURES_ENABLED &&
-    CUSTOM_ANALYTICS_ENABLED
-      ? fetchSS("/enterprise-settings/custom-analytics-script")
-      : Promise.resolve(null);
+  const brandingTask = fetchOrgMeshBrandingSS();
 
   try {
-    const [settingsResponse, enterpriseResponse, analyticsResponse] =
-      await Promise.all([settingsTask, enterpriseTask, analyticsTask]);
+    const [settingsResponse, branding] = await Promise.all([
+      settingsTask,
+      brandingTask,
+    ]);
 
     let settings: Settings;
     if (!settingsResponse) {
@@ -91,46 +72,19 @@ export async function fetchSettingsSS(): Promise<CombinedSettings | null> {
       settings = await settingsResponse.json();
     }
 
-    let enterpriseSettings: EnterpriseSettings | null = null;
-    if (enterpriseResponse) {
-      if (enterpriseResponse.ok) {
-        enterpriseSettings = await enterpriseResponse.json();
-      } else if (
-        enterpriseResponse.status !== 403 &&
-        enterpriseResponse.status !== 401
-      ) {
-        throw new Error(
-          `fetchSettingsSS: enterprise failed status=${
-            enterpriseResponse.status
-          } body=${await enterpriseResponse.text()}`
-        );
-      }
-    }
-
-    let customAnalyticsScript: string | null = null;
-    if (analyticsResponse) {
-      if (analyticsResponse.ok) {
-        customAnalyticsScript = await analyticsResponse.json();
-      } else if (analyticsResponse.status !== 403) {
-        throw new Error(
-          `fetchSettingsSS: analytics failed status=${
-            analyticsResponse.status
-          } body=${await analyticsResponse.text()}`
-        );
-      }
-    }
-
     if (settings.deep_research_enabled == null) {
       settings.deep_research_enabled = true;
     }
 
     return {
       settings,
-      enterpriseSettings,
-      customAnalyticsScript,
+      enterpriseSettings: null,
+      customAnalyticsScript: null,
       webVersion: settings.version ?? getWebVersion(),
       webDomain: HOST_URL,
-      appName: enterpriseSettings?.application_name?.trim() || "Onyx",
+      appName: branding.name,
+      logoUrl: brandingLogoUrl(branding.logo_asset_id),
+      greeting: branding.greeting,
     };
   } catch (error) {
     console.error("fetchSettingsSS exception: ", error);

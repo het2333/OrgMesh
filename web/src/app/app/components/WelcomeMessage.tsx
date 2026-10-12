@@ -28,14 +28,14 @@ export default function WelcomeMessage({
   const [greeting, setGreeting] = useState(t("greeting.helpText"));
 
   useEffect(() => {
-    if (settings.enterprise?.custom_greeting_message) {
-      setGreeting(settings.enterprise.custom_greeting_message);
+    if (settings.greeting) {
+      setGreeting(settings.greeting);
     } else {
       setGreeting(
         Math.random() < 0.5 ? t("greeting.helpText") : t("greeting.startText")
       );
     }
-  }, [settings.enterprise?.custom_greeting_message, t]);
+  }, [settings.greeting, t]);
 
   const { incognitoEnabled } = useIncognito();
 

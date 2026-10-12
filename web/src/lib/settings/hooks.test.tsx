@@ -38,33 +38,25 @@ function stubEnterpriseFetchError(error: Error) {
   );
 }
 
-function enterpriseRetryPolicy(): (err: Error) => boolean {
-  const call = mockUseSWR.mock.calls.find(
-    ([key]) => key === SWR_KEYS.enterpriseSettings
-  );
-  expect(call).toBeDefined();
-  const config = call?.[2] as { shouldRetryOnError: (err: Error) => boolean };
-  return config.shouldRetryOnError;
-}
-
-// A CE backend has no enterprise-settings route. The login page probes it
-// anyway, so the 404 must degrade to default branding, not a fatal error.
-describe("useSettings enterprise-settings 404 handling", () => {
+// The public brand path never probes legacy enterprise settings.
+describe("useSettings independent branding", () => {
   beforeEach(() => {
     mockUseSWR.mockReset();
     mockUsePathname.mockReset();
     mockUsePathname.mockReturnValue("/auth/login");
   });
 
-  test("a 404 yields default branding with no error and no retry", () => {
+  test("default branding uses the reviewed local asset without legacy probes", () => {
     const missing = new FetchError("Not Found", 404, {});
     stubEnterpriseFetchError(missing);
     const { result } = renderHook(() => useSettings());
     expect(result.current.error).toBeUndefined();
     expect(result.current.enterprise).toBeNull();
     expect(result.current.appName).toBe("OrgMesh");
-    expect(result.current.logoUrl).toBeNull();
-    expect(enterpriseRetryPolicy()(missing)).toBe(false);
+    expect(result.current.logoUrl).toBe("/orgmesh.svg");
+    expect(
+      mockUseSWR.mock.calls.some(([key]) => key === SWR_KEYS.enterpriseSettings)
+    ).toBe(false);
   });
 
   test("a 404 off the auth path is not surfaced either", () => {
@@ -75,11 +67,23 @@ describe("useSettings enterprise-settings 404 handling", () => {
     expect(result.current.enterprise).toBeNull();
   });
 
-  test("other enterprise-settings failures still surface and retry", () => {
+  test("legacy failures do not become fatal core settings errors", () => {
     const outage = new FetchError("Internal Server Error", 500, {});
     stubEnterpriseFetchError(outage);
     const { result } = renderHook(() => useSettings());
+    expect(result.current.error).toBeUndefined();
+    expect(
+      mockUseSWR.mock.calls.some(([key]) => key === SWR_KEYS.enterpriseSettings)
+    ).toBe(false);
+  });
+  test("core settings outages still surface", () => {
+    mockUsePathname.mockReturnValue("/app");
+    const outage = new FetchError("Unavailable", 503, {});
+    mockUseSWR.mockImplementation((key) =>
+      key === SWR_KEYS.settings ? swrResult({ error: outage }) : swrResult()
+    );
+    const { result } = renderHook(() => useSettings());
     expect(result.current.error).toBe(outage);
-    expect(enterpriseRetryPolicy()(outage)).toBe(true);
+    expect(result.current.appName).toBe("OrgMesh");
   });
 });

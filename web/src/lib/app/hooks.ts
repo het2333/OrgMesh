@@ -3,7 +3,7 @@
 import { useLayoutEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAppPosition } from "@/lib/position/hooks";
-import { useSettings } from "@/lib/settings/hooks";
+import { useEnterpriseSettings, useSettings } from "@/lib/settings/hooks";
 import { APP_SLOGAN } from "@/lib/constants";
 import useChatSessions from "@/hooks/useChatSessions";
 import { useCurrentSessionPersonaId } from "@/app/app/stores/useChatSessionStore";
@@ -12,8 +12,9 @@ import { SEARCH_TOOL_ID, WEB_SEARCH_TOOL_ID } from "@/lib/tools/constants";
 
 export function useCustomFooterContent(): string {
   const settings = useSettings();
+  const { data: enterprisePolicy } = useEnterpriseSettings();
   return (
-    settings.enterprise?.custom_lower_disclaimer_content ||
+    enterprisePolicy?.custom_lower_disclaimer_content ||
     `[Onyx ${settings.version ?? "dev"}](https://www.onyx.app/) - ${APP_SLOGAN}`
   );
 }

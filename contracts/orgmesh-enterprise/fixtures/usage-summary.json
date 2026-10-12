@@ -1,0 +1,71 @@
+{
+  "operation": "usage.summary",
+  "summary": {
+    "group_by": "day",
+    "status": "ready",
+    "activated_at": "2026-10-12T12:00:00Z",
+    "collection_start": "2026-10-13T00:00:00Z",
+    "coverage": {
+      "from": "2026-10-13T00:00:00Z",
+      "to": "2026-10-14T00:00:00Z"
+    },
+    "published_at": "2026-10-13T12:00:00Z",
+    "revision": 7,
+    "groups": [
+      {
+        "value": "2026-10-13",
+        "category": "USER",
+        "incognito": false,
+        "totals": {
+          "input_tokens": "10",
+          "output_tokens": "5",
+          "total_tokens": "15",
+          "cache_read_tokens": "4",
+          "cache_creation_tokens": "2",
+          "cost_cents": "0.123456"
+        }
+      },
+      {
+        "value": "2026-10-13",
+        "category": "USER",
+        "incognito": true,
+        "totals": {
+          "input_tokens": "10",
+          "output_tokens": "5",
+          "total_tokens": "15",
+          "cache_read_tokens": "4",
+          "cache_creation_tokens": "2",
+          "cost_cents": "0.123456"
+        }
+      },
+      {
+        "value": "2026-10-13",
+        "category": "SYSTEM_ATTRIBUTED",
+        "incognito": false,
+        "totals": {
+          "input_tokens": "10",
+          "output_tokens": "5",
+          "total_tokens": "15",
+          "cache_read_tokens": "4",
+          "cache_creation_tokens": "2",
+          "cost_cents": "0.123456"
+        }
+      },
+      {
+        "value": "2026-10-13",
+        "category": "SYSTEM_UNATTRIBUTED",
+        "incognito": false,
+        "totals": {
+          "input_tokens": "10",
+          "output_tokens": "5",
+          "total_tokens": "15",
+          "cache_read_tokens": "4",
+          "cache_creation_tokens": "2",
+          "cost_cents": "0.123456"
+        }
+      }
+    ],
+    "cost_basis": "source_estimate_usd_cents",
+    "cost_notice": "Source-estimated USD cents; 0 may mean missing pricing. Not settled charges."
+  }
+}

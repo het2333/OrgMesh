@@ -3,7 +3,7 @@
 import useSWR, { mutate } from "swr";
 import { errorHandlingFetcher } from "@/lib/fetcher";
 import { UserGroup } from "@/lib/types";
-import { useSettings } from "@/lib/settings/hooks";
+import { useEnterpriseSettings } from "@/lib/settings/hooks";
 import { SWR_KEYS } from "@/lib/swr-keys";
 
 /**
@@ -39,9 +39,12 @@ import { SWR_KEYS } from "@/lib/swr-keys";
  *   management hides. The service-account forms opt in to grant a key any access.
  */
 export default function useGroups(includeDefault = false) {
-  const settings = useSettings();
+  const settings = useEnterpriseSettings();
   const isPaidEnterpriseFeaturesEnabled =
-    !settings.isLoading && settings.enterprise !== null;
+    settings.isEnabled &&
+    !settings.isLoading &&
+    !settings.error &&
+    !!settings.data;
 
   const url = includeDefault
     ? SWR_KEYS.adminUserGroupsWithDefault

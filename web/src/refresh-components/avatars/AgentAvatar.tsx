@@ -20,17 +20,17 @@ export default function AgentAvatar({
   ...props
 }: AgentAvatarProps) {
   const t = useTranslations("common.agentAvatar");
-  const { enterprise: enterpriseSettings } = useSettings();
+  const { logoUrl } = useSettings();
 
   if (agent.id === DEFAULT_AGENT_ID) {
-    return enterpriseSettings?.use_custom_logo ? (
+    return logoUrl ? (
       <div
         className="aspect-square rounded-full overflow-hidden relative"
         style={{ height: size, width: size }}
       >
         <Image
           alt={t("logo.alt")}
-          src="/api/enterprise-settings/logo"
+          src={logoUrl}
           fill
           className="object-cover object-center"
           sizes={`${size}px`}

@@ -1,10 +1,9 @@
 "use client";
 
 import useSWR from "swr";
-import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import useCCPairs from "@/hooks/useCCPairs";
-import { errorHandlingFetcher, isNotFoundError } from "@/lib/fetcher";
+import { errorHandlingFetcher } from "@/lib/fetcher";
 import { SWR_KEYS } from "@/lib/swr-keys";
 import { isAuthPath } from "@/lib/auth/paths";
 import {
@@ -15,6 +14,8 @@ import {
   Settings,
 } from "@/lib/settings/types";
 import { EE_ENABLED } from "@/lib/constants";
+import { useOrgMeshBranding } from "@/lib/orgmesh-enterprise/hooks";
+import { brandingLogoUrl } from "@/lib/orgmesh-enterprise/staticBranding";
 
 const SETTINGS_ERROR_RETRY_INTERVAL = 5_000;
 
@@ -34,20 +35,10 @@ const DEFAULT_SETTINGS: Settings = {
   query_history_type: QueryHistoryType.NORMAL,
 };
 
-// A CE backend never registers the enterprise-settings route, so its 404
-// means no enterprise settings, not an outage: no error and no retry.
-const isEnterpriseSettingsMissing = isNotFoundError;
-
-/**
- * The single settings hook. Returns a fully-derived `AppSettings` object that
- * merges core settings and enterprise settings into one consistent shape.
- *
- * Derived fields (`appName`, `vectorDbEnabled`) are pre-computed so callers
- * never have to re-derive them or fetch enterprise settings separately.
- */
+/** Core failures remain fatal. Independent branding has a safe fallback. */
 export function useSettings(): AppSettings {
   // Skip core settings on /auth/* routes: unauthenticated callers 403 there, and
-  // the login shell only needs enterprise-derived `appName` (fetched below).
+  // the login shell only needs the independent public branding.
   const onAuthPath = isAuthPath(usePathname());
 
   const {
@@ -67,57 +58,18 @@ export function useSettings(): AppSettings {
   );
 
   const core = rawSettings ?? DEFAULT_SETTINGS;
-  // Auth pages need branding pre-sign-in but standard web images lack the EE
-  // flag, so probe the endpoint.
-  const shouldFetchEnterprise =
-    EE_ENABLED ||
-    onAuthPath ||
-    (!settingsLoading && !settingsError && core.ee_features_enabled !== false);
-
-  const {
-    data: enterprise,
-    error: enterpriseError,
-    isLoading: enterpriseLoading,
-  } = useSWR<EnterpriseSettings>(
-    shouldFetchEnterprise ? SWR_KEYS.enterpriseSettings : null,
-    errorHandlingFetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      revalidateIfStale: false,
-      dedupingInterval: 30_000,
-      errorRetryInterval: SETTINGS_ERROR_RETRY_INTERVAL,
-      shouldRetryOnError: (err) => !isEnterpriseSettingsMissing(err),
-      // Referential equality — logo can change without JSON changing, so
-      // mutate() must propagate a new reference for cache-busters.
-      compare: (a, b) => a === b,
-    }
-  );
-
-  // Cache-buster: the logo endpoint URL never changes, so the browser serves
-  // a cached image even after an admin uploads a new logo. Regenerating this
-  // timestamp whenever the enterprise settings reference changes forces a
-  // re-fetch. We use referential equality on the SWR data (compare: a===b),
-  // so this only fires when SWR actually receives new enterprise data.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const logoBuster = useMemo(() => Date.now(), [enterprise]);
+  const branding = useOrgMeshBranding();
 
   return {
     ...core,
-    enterprise: enterprise ?? null,
-    appName: enterprise?.application_name?.trim() || "OrgMesh",
-    logoUrl: enterprise?.use_custom_logo
-      ? `/api/enterprise-settings/logo?v=${logoBuster}`
-      : null,
+    enterprise: null,
+    appName: branding.data.name,
+    greeting: branding.data.greeting,
+    logoUrl: brandingLogoUrl(branding.data.logo_asset_id),
     vectorDbEnabled:
       !settingsLoading && !settingsError && core.vector_db_enabled !== false,
-    isLoading:
-      settingsLoading || (shouldFetchEnterprise ? enterpriseLoading : false),
-    error:
-      settingsError ??
-      (isEnterpriseSettingsMissing(enterpriseError)
-        ? undefined
-        : enterpriseError),
+    isLoading: settingsLoading,
+    error: settingsError,
   };
 }
 
@@ -133,4 +85,20 @@ export function useIsSearchModeAvailable(): boolean {
   const { vectorDbEnabled, search_ui_enabled } = useSettings();
   const { ccPairs } = useCCPairs(vectorDbEnabled);
   return search_ui_enabled !== false && ccPairs.length > 0;
+}
+
+/** Explicit legacy policy consumers opt in. Branding never enables this fetch. */
+export function useEnterpriseSettings() {
+  const { ee_features_enabled, isLoading, error } = useSettings();
+  const isEnabled =
+    EE_ENABLED || (!isLoading && !error && ee_features_enabled === true);
+  const state = useSWR<EnterpriseSettings>(
+    isEnabled ? SWR_KEYS.enterpriseSettings : null,
+    errorHandlingFetcher,
+    {
+      revalidateOnFocus: false,
+      errorRetryInterval: SETTINGS_ERROR_RETRY_INTERVAL,
+    }
+  );
+  return { ...state, isEnabled, isLoading: isLoading || state.isLoading };
 }

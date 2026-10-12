@@ -1,4 +1,5 @@
 import copy
+import os
 from datetime import timedelta
 from typing import Any
 
@@ -22,7 +23,7 @@ from onyx.configs.constants import (
 )
 from onyx.server.features.build.configs import SANDBOX_IDLE_CLEANUP_INTERVAL_SECONDS
 from onyx.utils.variable_functionality import _LICENSE_ENFORCEMENT_ENABLED
-from shared_configs.configs import MULTI_TENANT
+from shared_configs.configs import MULTI_TENANT, POSTGRES_DEFAULT_SCHEMA
 
 # choosing 15 minutes because it roughly gives us enough time to process many tasks
 # we might be able to reduce this greatly if we can run a unified
@@ -436,6 +437,23 @@ beat_cloud_tasks: list[dict] = [
 # tasks that only run self hosted
 tasks_to_schedule: list[dict] = []
 if not MULTI_TENANT:
+    tasks_to_schedule.append(
+        {
+            "name": "orgmesh-produce-usage-snapshot",
+            "task": OnyxCeleryTask.PRODUCE_ORGMESH_USAGE_SNAPSHOT,
+            "schedule": timedelta(seconds=60),
+            "kwargs": {
+                "tenant_id": os.environ.get(
+                    "ORGMESH_ENTERPRISE_TENANT_ID", POSTGRES_DEFAULT_SCHEMA
+                )
+            },
+            "options": {
+                "queue": OnyxCeleryQueues.PRIMARY,
+                "priority": OnyxCeleryPriority.LOW,
+                "expires": 55,
+            },
+        }
+    )
     tasks_to_schedule.extend(
         [
             {

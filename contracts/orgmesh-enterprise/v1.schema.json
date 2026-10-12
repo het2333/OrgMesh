@@ -1,0 +1,1545 @@
+{
+  "$defs": {
+    "AuditEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "format": "uuid",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "user_id": {
+          "format": "uuid",
+          "title": "User Id",
+          "type": "string"
+        },
+        "action": {
+          "enum": [
+            "branding.created",
+            "branding.updated"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "result": {
+          "const": "success",
+          "title": "Result",
+          "type": "string"
+        },
+        "before_version": {
+          "minimum": 0,
+          "title": "Before Version",
+          "type": "integer",
+          "maximum": 9223372036854775807
+        },
+        "after_version": {
+          "minimum": 1,
+          "title": "After Version",
+          "type": "integer",
+          "maximum": 9223372036854775807
+        },
+        "changed_fields": {
+          "items": {
+            "enum": [
+              "name",
+              "greeting",
+              "logo_asset_id"
+            ],
+            "type": "string"
+          },
+          "title": "Changed Fields",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "actor_kind": {
+          "const": "user",
+          "type": "string",
+          "title": "Actor Kind"
+        },
+        "resource_id": {
+          "const": "branding-config",
+          "type": "string",
+          "title": "Resource Id"
+        }
+      },
+      "required": [
+        "event_id",
+        "created_at",
+        "user_id",
+        "action",
+        "result",
+        "before_version",
+        "after_version",
+        "changed_fields",
+        "request_id",
+        "actor_kind",
+        "resource_id"
+      ],
+      "title": "AuditEvent",
+      "type": "object"
+    },
+    "AuditListRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "audit.list",
+          "default": "audit.list",
+          "title": "Operation",
+          "type": "string"
+        },
+        "query": {
+          "$ref": "#/$defs/AuditQuery"
+        }
+      },
+      "required": [
+        "operation",
+        "query"
+      ],
+      "title": "AuditListRequest",
+      "type": "object"
+    },
+    "AuditListResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "audit.list",
+          "title": "Operation",
+          "type": "string"
+        },
+        "page": {
+          "$ref": "#/$defs/AuditPage"
+        }
+      },
+      "required": [
+        "operation",
+        "page"
+      ],
+      "title": "AuditListResponse",
+      "type": "object"
+    },
+    "AuditPage": {
+      "additionalProperties": false,
+      "properties": {
+        "events": {
+          "items": {
+            "$ref": "#/$defs/AuditEvent"
+          },
+          "maxItems": 100,
+          "title": "Events",
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Next Cursor"
+        }
+      },
+      "required": [
+        "events",
+        "next_cursor"
+      ],
+      "title": "AuditPage",
+      "type": "object"
+    },
+    "AuditQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        },
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "limit": {
+          "default": 50,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "cursor": {
+          "default": "",
+          "maxLength": 512,
+          "title": "Cursor",
+          "type": "string"
+        },
+        "action": {
+          "default": "",
+          "enum": [
+            "",
+            "branding.created",
+            "branding.updated"
+          ],
+          "type": "string",
+          "title": "Action"
+        },
+        "result": {
+          "default": "",
+          "enum": [
+            "",
+            "success"
+          ],
+          "type": "string",
+          "title": "Result"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "AuditQuery",
+      "type": "object"
+    },
+    "BrandingPatch": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 50,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "greeting": {
+          "maxLength": 120,
+          "title": "Greeting",
+          "type": "string"
+        },
+        "logo_asset_id": {
+          "const": "orgmesh-default",
+          "title": "Logo Asset Id",
+          "type": "string"
+        },
+        "expected_version": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Expected Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "greeting",
+        "logo_asset_id",
+        "expected_version"
+      ],
+      "title": "BrandingPatch",
+      "type": "object"
+    },
+    "BrandingPatchRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "branding.patch",
+          "default": "branding.patch",
+          "title": "Operation",
+          "type": "string"
+        },
+        "patch": {
+          "$ref": "#/$defs/BrandingPatch"
+        }
+      },
+      "required": [
+        "operation",
+        "patch"
+      ],
+      "title": "BrandingPatchRequest",
+      "type": "object"
+    },
+    "BrandingPatchResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "branding.patch",
+          "title": "Operation",
+          "type": "string"
+        },
+        "branding": {
+          "$ref": "#/$defs/BrandingView"
+        }
+      },
+      "required": [
+        "branding",
+        "operation"
+      ],
+      "title": "BrandingPatchResponse",
+      "type": "object"
+    },
+    "BrandingReadRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "branding.read",
+          "default": "branding.read",
+          "title": "Operation",
+          "type": "string"
+        }
+      },
+      "title": "BrandingReadRequest",
+      "type": "object",
+      "required": [
+        "operation"
+      ]
+    },
+    "BrandingReadResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "branding.read",
+          "title": "Operation",
+          "type": "string"
+        },
+        "branding": {
+          "$ref": "#/$defs/BrandingView"
+        }
+      },
+      "required": [
+        "branding",
+        "operation"
+      ],
+      "title": "BrandingReadResponse",
+      "type": "object"
+    },
+    "BrandingView": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 50,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "greeting": {
+          "maxLength": 120,
+          "title": "Greeting",
+          "type": "string"
+        },
+        "logo_asset_id": {
+          "const": "orgmesh-default",
+          "title": "Logo Asset Id",
+          "type": "string"
+        },
+        "version": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Version",
+          "type": "integer"
+        },
+        "source": {
+          "enum": [
+            "static",
+            "dynamic"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "greeting",
+        "logo_asset_id",
+        "version",
+        "source"
+      ],
+      "title": "BrandingView",
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source": {
+                "const": "static"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "version": {
+                "const": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "version": {
+                "minimum": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "EnterpriseOperation": {
+      "enum": [
+        "branding.read",
+        "branding.patch",
+        "audit.list",
+        "usage.summary",
+        "usage.begin",
+        "usage.stage",
+        "usage.commit"
+      ],
+      "title": "EnterpriseOperation",
+      "type": "string"
+    },
+    "EnterpriseRequestEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "identity": {
+          "$ref": "#/$defs/TrustedIdentity"
+        },
+        "request": {
+          "discriminator": {
+            "mapping": {
+              "audit.list": "#/$defs/AuditListRequest",
+              "branding.patch": "#/$defs/BrandingPatchRequest",
+              "branding.read": "#/$defs/BrandingReadRequest",
+              "usage.begin": "#/$defs/UsageBeginRequest",
+              "usage.commit": "#/$defs/UsageCommitRequest",
+              "usage.stage": "#/$defs/UsageStageRequest",
+              "usage.summary": "#/$defs/UsageSummaryRequest"
+            },
+            "propertyName": "operation"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/BrandingReadRequest"
+            },
+            {
+              "$ref": "#/$defs/BrandingPatchRequest"
+            },
+            {
+              "$ref": "#/$defs/AuditListRequest"
+            },
+            {
+              "$ref": "#/$defs/UsageSummaryRequest"
+            },
+            {
+              "$ref": "#/$defs/UsageBeginRequest"
+            },
+            {
+              "$ref": "#/$defs/UsageStageRequest"
+            },
+            {
+              "$ref": "#/$defs/UsageCommitRequest"
+            }
+          ],
+          "title": "Request"
+        }
+      },
+      "required": [
+        "version",
+        "identity",
+        "request"
+      ],
+      "title": "EnterpriseRequestEnvelope",
+      "type": "object"
+    },
+    "TrustedIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": 1,
+          "default": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "tenant_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "actor_kind": {
+          "enum": [
+            "anonymous",
+            "user",
+            "producer"
+          ],
+          "title": "Actor Kind",
+          "type": "string"
+        },
+        "user_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "const": "",
+              "type": "string"
+            }
+          ],
+          "title": "User Id"
+        },
+        "operation": {
+          "$ref": "#/$defs/EnterpriseOperation"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "audience": {
+          "const": "orgmesh-enterprise/v1",
+          "default": "orgmesh-enterprise/v1",
+          "title": "Audience",
+          "type": "string"
+        },
+        "issued_at": {
+          "format": "date-time",
+          "title": "Issued At",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "tenant_id",
+        "actor_kind",
+        "user_id",
+        "operation",
+        "request_id",
+        "audience",
+        "issued_at",
+        "expires_at"
+      ],
+      "title": "TrustedIdentity",
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "enum": [
+                  "usage.begin",
+                  "usage.stage",
+                  "usage.commit"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "actor_kind": {
+                "const": "producer"
+              },
+              "user_id": {
+                "const": ""
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "actor_kind": {
+                "enum": [
+                  "anonymous",
+                  "user"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "actor_kind": {
+                "const": "anonymous"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "operation": {
+                "const": "branding.read"
+              },
+              "user_id": {
+                "const": ""
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "actor_kind": {
+                "const": "user"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "user_id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "UsageQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "group_by": {
+          "default": "day",
+          "enum": [
+            "day",
+            "model",
+            "flow"
+          ],
+          "title": "Group By",
+          "type": "string"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T00:00:00(?:\\.0{1,9})?(?:Z|[+-]00:00)$"
+        },
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T00:00:00(?:\\.0{1,9})?(?:Z|[+-]00:00)$"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "UsageQuery",
+      "type": "object"
+    },
+    "UsageSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "group_by": {
+          "enum": [
+            "day",
+            "model",
+            "flow"
+          ],
+          "title": "Group By",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "ready",
+            "stale",
+            "waiting",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "activated_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Activated At"
+        },
+        "collection_start": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Collection Start"
+        },
+        "coverage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Coverage"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "published_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Published At"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "groups": {
+          "items": {
+            "$ref": "#/$defs/UsageGroup"
+          },
+          "maxItems": 1000,
+          "title": "Groups",
+          "type": "array"
+        },
+        "cost_basis": {
+          "const": "source_estimate_usd_cents",
+          "title": "Cost Basis",
+          "type": "string"
+        },
+        "cost_notice": {
+          "const": "Source-estimated USD cents; 0 may mean missing pricing. Not settled charges.",
+          "title": "Cost Notice",
+          "type": "string"
+        }
+      },
+      "required": [
+        "group_by",
+        "status",
+        "activated_at",
+        "collection_start",
+        "coverage",
+        "published_at",
+        "revision",
+        "groups",
+        "cost_basis",
+        "cost_notice"
+      ],
+      "title": "UsageSummary",
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "ready",
+                  "stale"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "coverage": {
+                "$ref": "#/$defs/Coverage"
+              },
+              "revision": {
+                "minimum": 1
+              },
+              "activated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "collection_start": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "published_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "coverage": {
+                "type": "null"
+              },
+              "groups": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "UsageSummaryRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "usage.summary",
+          "default": "usage.summary",
+          "title": "Operation",
+          "type": "string"
+        },
+        "query": {
+          "$ref": "#/$defs/UsageQuery"
+        }
+      },
+      "required": [
+        "operation",
+        "query"
+      ],
+      "title": "UsageSummaryRequest",
+      "type": "object"
+    },
+    "UsageSummaryResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "usage.summary",
+          "title": "Operation",
+          "type": "string"
+        },
+        "summary": {
+          "$ref": "#/$defs/UsageSummary"
+        }
+      },
+      "required": [
+        "operation",
+        "summary"
+      ],
+      "title": "UsageSummaryResponse",
+      "type": "object"
+    },
+    "Coverage": {
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "format": "date-time",
+          "title": "From",
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T00:00:00(?:\\.0{1,9})?(?:Z|[+-]00:00)$"
+        },
+        "to": {
+          "format": "date-time",
+          "title": "To",
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T00:00:00(?:\\.0{1,9})?(?:Z|[+-]00:00)$"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "title": "Coverage",
+      "type": "object"
+    },
+    "PublishedSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "coverage": {
+          "$ref": "#/$defs/Coverage"
+        },
+        "published_at": {
+          "format": "date-time",
+          "title": "Published At",
+          "type": "string"
+        },
+        "total_rows": {
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Total Rows",
+          "type": "integer"
+        },
+        "total_bytes": {
+          "maximum": 67108864,
+          "minimum": 0,
+          "title": "Total Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "revision",
+        "digest",
+        "coverage",
+        "published_at",
+        "total_rows",
+        "total_bytes"
+      ],
+      "title": "PublishedSnapshot",
+      "type": "object"
+    },
+    "SnapshotBatch": {
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "exclusiveMaximum": 100000,
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "rows": {
+          "items": {
+            "$ref": "#/$defs/SnapshotRow"
+          },
+          "maxItems": 1000,
+          "minItems": 1,
+          "title": "Rows",
+          "type": "array"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "index",
+        "rows",
+        "digest"
+      ],
+      "title": "SnapshotBatch",
+      "type": "object"
+    },
+    "SnapshotLease": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "waiting",
+            "ready"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "activated_at": {
+          "format": "date-time",
+          "title": "Activated At",
+          "type": "string"
+        },
+        "collection_start": {
+          "format": "date-time",
+          "title": "Collection Start",
+          "type": "string"
+        },
+        "coverage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Coverage"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expires At"
+        }
+      },
+      "required": [
+        "status",
+        "revision",
+        "activated_at",
+        "collection_start",
+        "coverage",
+        "expires_at"
+      ],
+      "title": "SnapshotLease",
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "waiting"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "revision": {
+                "const": 0
+              },
+              "coverage": {
+                "type": "null"
+              },
+              "expires_at": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "revision": {
+                "minimum": 1
+              },
+              "coverage": {
+                "$ref": "#/$defs/Coverage"
+              },
+              "expires_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "SnapshotManifest": {
+      "additionalProperties": false,
+      "properties": {
+        "complete": {
+          "title": "Complete",
+          "type": "boolean",
+          "const": true
+        },
+        "batches": {
+          "items": {
+            "$ref": "#/$defs/StageAck"
+          },
+          "maxItems": 100000,
+          "title": "Batches",
+          "type": "array"
+        },
+        "total_rows": {
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Total Rows",
+          "type": "integer"
+        },
+        "total_bytes": {
+          "maximum": 67108864,
+          "minimum": 0,
+          "title": "Total Bytes",
+          "type": "integer"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "complete",
+        "batches",
+        "total_rows",
+        "total_bytes",
+        "digest"
+      ],
+      "title": "SnapshotManifest",
+      "type": "object"
+    },
+    "SnapshotRow": {
+      "additionalProperties": false,
+      "properties": {
+        "source_row_id": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Source Row Id",
+          "type": "integer"
+        },
+        "actor_kind": {
+          "enum": [
+            "USER",
+            "SYSTEM"
+          ],
+          "title": "Actor Kind",
+          "type": "string"
+        },
+        "user_id": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "User Id"
+        },
+        "system_attribution": {
+          "anyOf": [
+            {
+              "enum": [
+                "ATTRIBUTED",
+                "UNATTRIBUTED"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "System Attribution"
+        },
+        "window_start": {
+          "format": "date-time",
+          "title": "Window Start",
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T00:00:00(?:\\.0{1,9})?(?:Z|[+-]00:00)$"
+        },
+        "model": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "flow": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Flow",
+          "type": "string"
+        },
+        "provider": {
+          "maxLength": 512,
+          "title": "Provider",
+          "type": "string"
+        },
+        "incognito": {
+          "title": "Incognito",
+          "type": "boolean"
+        },
+        "input_tokens": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "cache_read_tokens": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Cache Read Tokens",
+          "type": "integer"
+        },
+        "cache_creation_tokens": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Cache Creation Tokens",
+          "type": "integer"
+        },
+        "cost_cents": {
+          "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+          "title": "Cost Cents",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_row_id",
+        "actor_kind",
+        "user_id",
+        "system_attribution",
+        "window_start",
+        "model",
+        "flow",
+        "provider",
+        "incognito",
+        "input_tokens",
+        "output_tokens",
+        "cache_read_tokens",
+        "cache_creation_tokens",
+        "cost_cents"
+      ],
+      "title": "SnapshotRow",
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "actor_kind": {
+                "const": "USER"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "system_attribution": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "user_id": {
+                "type": "null"
+              },
+              "incognito": {
+                "const": false
+              },
+              "system_attribution": {
+                "enum": [
+                  "ATTRIBUTED",
+                  "UNATTRIBUTED"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "StageAck": {
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "exclusiveMaximum": 100000,
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "row_count": {
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Row Count",
+          "type": "integer"
+        },
+        "byte_count": {
+          "maximum": 1048576,
+          "minimum": 1,
+          "title": "Byte Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "index",
+        "digest",
+        "row_count",
+        "byte_count"
+      ],
+      "title": "StageAck",
+      "type": "object"
+    },
+    "UsageBeginRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "usage.begin",
+          "default": "usage.begin",
+          "title": "Operation",
+          "type": "string"
+        },
+        "coverage": {
+          "$ref": "#/$defs/Coverage"
+        }
+      },
+      "required": [
+        "operation",
+        "coverage"
+      ],
+      "title": "UsageBeginRequest",
+      "type": "object"
+    },
+    "UsageBeginResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "usage.begin",
+          "title": "Operation",
+          "type": "string"
+        },
+        "lease": {
+          "$ref": "#/$defs/SnapshotLease"
+        }
+      },
+      "required": [
+        "operation",
+        "lease"
+      ],
+      "title": "UsageBeginResponse",
+      "type": "object"
+    },
+    "UsageCommitRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "usage.commit",
+          "default": "usage.commit",
+          "title": "Operation",
+          "type": "string"
+        },
+        "lease": {
+          "$ref": "#/$defs/SnapshotLease"
+        },
+        "manifest": {
+          "$ref": "#/$defs/SnapshotManifest"
+        }
+      },
+      "required": [
+        "operation",
+        "lease",
+        "manifest"
+      ],
+      "title": "UsageCommitRequest",
+      "type": "object"
+    },
+    "UsageCommitResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "usage.commit",
+          "title": "Operation",
+          "type": "string"
+        },
+        "published": {
+          "$ref": "#/$defs/PublishedSnapshot"
+        }
+      },
+      "required": [
+        "operation",
+        "published"
+      ],
+      "title": "UsageCommitResponse",
+      "type": "object"
+    },
+    "UsageGroup": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        },
+        "category": {
+          "enum": [
+            "USER",
+            "SYSTEM_ATTRIBUTED",
+            "SYSTEM_UNATTRIBUTED"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "incognito": {
+          "title": "Incognito",
+          "type": "boolean"
+        },
+        "totals": {
+          "$ref": "#/$defs/UsageTotals"
+        }
+      },
+      "required": [
+        "value",
+        "category",
+        "incognito",
+        "totals"
+      ],
+      "title": "UsageGroup",
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "category": {
+                "enum": [
+                  "SYSTEM_ATTRIBUTED",
+                  "SYSTEM_UNATTRIBUTED"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "incognito": {
+                "const": false
+              }
+            }
+          }
+        }
+      ]
+    },
+    "UsageStageRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "usage.stage",
+          "default": "usage.stage",
+          "title": "Operation",
+          "type": "string"
+        },
+        "lease": {
+          "$ref": "#/$defs/SnapshotLease"
+        },
+        "batch": {
+          "$ref": "#/$defs/SnapshotBatch"
+        }
+      },
+      "required": [
+        "operation",
+        "lease",
+        "batch"
+      ],
+      "title": "UsageStageRequest",
+      "type": "object"
+    },
+    "UsageStageResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "usage.stage",
+          "title": "Operation",
+          "type": "string"
+        },
+        "ack": {
+          "$ref": "#/$defs/StageAck"
+        }
+      },
+      "required": [
+        "operation",
+        "ack"
+      ],
+      "title": "UsageStageResponse",
+      "type": "object"
+    },
+    "UsageTotals": {
+      "additionalProperties": false,
+      "properties": {
+        "input_tokens": {
+          "pattern": "^(0|[1-9][0-9]{0,31})$",
+          "title": "Input Tokens",
+          "type": "string"
+        },
+        "output_tokens": {
+          "pattern": "^(0|[1-9][0-9]{0,31})$",
+          "title": "Output Tokens",
+          "type": "string"
+        },
+        "total_tokens": {
+          "pattern": "^(0|[1-9][0-9]{0,31})$",
+          "title": "Total Tokens",
+          "type": "string"
+        },
+        "cache_read_tokens": {
+          "pattern": "^(0|[1-9][0-9]{0,31})$",
+          "title": "Cache Read Tokens",
+          "type": "string"
+        },
+        "cache_creation_tokens": {
+          "pattern": "^(0|[1-9][0-9]{0,31})$",
+          "title": "Cache Creation Tokens",
+          "type": "string"
+        },
+        "cost_cents": {
+          "pattern": "^(0|[1-9][0-9]{0,31})\\.[0-9]{6}$",
+          "title": "Cost Cents",
+          "type": "string"
+        }
+      },
+      "required": [
+        "input_tokens",
+        "output_tokens",
+        "total_tokens",
+        "cache_read_tokens",
+        "cache_creation_tokens",
+        "cost_cents"
+      ],
+      "title": "UsageTotals",
+      "type": "object"
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/$defs/EnterpriseRequestEnvelope"
+    },
+    {
+      "discriminator": {
+        "mapping": {
+          "audit.list": "#/$defs/AuditListResponse",
+          "branding.patch": "#/$defs/BrandingPatchResponse",
+          "branding.read": "#/$defs/BrandingReadResponse",
+          "usage.begin": "#/$defs/UsageBeginResponse",
+          "usage.commit": "#/$defs/UsageCommitResponse",
+          "usage.stage": "#/$defs/UsageStageResponse",
+          "usage.summary": "#/$defs/UsageSummaryResponse"
+        },
+        "propertyName": "operation"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/BrandingReadResponse"
+        },
+        {
+          "$ref": "#/$defs/BrandingPatchResponse"
+        },
+        {
+          "$ref": "#/$defs/AuditListResponse"
+        },
+        {
+          "$ref": "#/$defs/UsageSummaryResponse"
+        },
+        {
+          "$ref": "#/$defs/UsageBeginResponse"
+        },
+        {
+          "$ref": "#/$defs/UsageStageResponse"
+        },
+        {
+          "$ref": "#/$defs/UsageCommitResponse"
+        }
+      ]
+    }
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orgmesh.local/contracts/orgmesh-enterprise/v1.schema.json",
+  "title": "OrgMesh enterprise private transport v1",
+  "description": "Private v1 calls are limited to 1048576 UTF-8 bytes. Usage uses UTC daily buckets, exact fixed-six-place USD-cents strings, and a producer-only fenced snapshot protocol. See usage-protocol.md for byte encoding, activation, limits, coverage, and runtime checks."
+}

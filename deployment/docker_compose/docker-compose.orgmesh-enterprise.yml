@@ -1,0 +1,83 @@
+# SPDX-License-Identifier: MIT
+# Review-only overlay. Do not apply it without UID, volume and DB approval.
+# It adds no host TCP ports. Inspect the merged base file for inherited ports.
+services:
+  orgmesh_enterprise:
+    build:
+      context: ../..
+      dockerfile: deployment/Dockerfile.orgmesh-enterprise
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    init: true
+    restart: "no"
+    pids_limit: 64
+    cpus: 0.5
+    mem_limit: 256m
+    environment:
+      MULTI_TENANT: "false"
+      ORGMESH_ENTERPRISE_TENANT_ID: ${ORGMESH_ENTERPRISE_TENANT_ID:?review matching single organization}
+      ORGMESH_ENTERPRISE_DATABASE_URL: ${ORGMESH_ENTERPRISE_DATABASE_URL:?supply approved schema-only DB connection}
+      ORGMESH_ENTERPRISE_USAGE_ENABLED: ${ORGMESH_ENTERPRISE_USAGE_ENABLED:-false}
+    volumes:
+      - type: bind
+        source: ${ORGMESH_ENTERPRISE_SOCKET_DIRECTORY:?approve existing private UID-10001 mode-0700 directory}
+        target: /run/orgmesh-enterprise
+        bind:
+          create_host_path: false
+    networks: [orgmesh_enterprise_database]
+    healthcheck:
+      test: [CMD-SHELL, "curl --fail --silent --show-error --max-time 2 --unix-socket /run/orgmesh-enterprise/enterprise.sock http://localhost/readyz >/dev/null"]
+      interval: 15s
+      timeout: 3s
+      start_period: 15s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+          pids: 64
+
+  # These values are proposals. Existing Python processes must support this UID.
+  # Do not use chmod/chown on real volumes to make this template run.
+  api_server:
+    user: "10001:10001"
+    environment:
+      ORGMESH_ENTERPRISE_TENANT_ID: ${ORGMESH_ENTERPRISE_TENANT_ID:?review matching single organization}
+      ORGMESH_ENTERPRISE_BRANDING_ENABLED: ${ORGMESH_ENTERPRISE_BRANDING_ENABLED:-false}
+      ORGMESH_ENTERPRISE_AUDIT_ENABLED: ${ORGMESH_ENTERPRISE_AUDIT_ENABLED:-false}
+      ORGMESH_ENTERPRISE_USAGE_ENABLED: ${ORGMESH_ENTERPRISE_USAGE_ENABLED:-false}
+      ORGMESH_ENTERPRISE_STATIC_BRANDING_FILE: /etc/orgmesh-enterprise/branding.json
+    volumes:
+      - type: bind
+        source: ${ORGMESH_ENTERPRISE_SOCKET_DIRECTORY:?approve existing private socket directory}
+        target: /run/orgmesh-enterprise
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${ORGMESH_ENTERPRISE_STATIC_BRANDING_SOURCE:?approve existing static branding JSON}
+        target: /etc/orgmesh-enterprise/branding.json
+        read_only: true
+        bind:
+          create_host_path: false
+
+  background:
+    user: "10001:10001"
+    environment:
+      ORGMESH_ENTERPRISE_TENANT_ID: ${ORGMESH_ENTERPRISE_TENANT_ID:?review matching single organization}
+      ORGMESH_ENTERPRISE_USAGE_ENABLED: ${ORGMESH_ENTERPRISE_USAGE_ENABLED:-false}
+    volumes:
+      - type: bind
+        source: ${ORGMESH_ENTERPRISE_SOCKET_DIRECTORY:?approve existing private socket directory}
+        target: /run/orgmesh-enterprise
+        read_only: true
+        bind:
+          create_host_path: false
+
+networks:
+  orgmesh_enterprise_database:
+    external: true
+    name: ${ORGMESH_ENTERPRISE_DATABASE_NETWORK:?approve existing isolated database network}

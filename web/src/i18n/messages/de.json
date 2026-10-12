@@ -13491,6 +13491,15 @@
         },
         "webSearch": {
           "label": "Websuche"
+        },
+        "orgmeshBranding": {
+          "label": "OrgMesh-Branding"
+        },
+        "orgmeshAudit": {
+          "label": "OrgMesh-Audit"
+        },
+        "orgmeshUsage": {
+          "label": "OrgMesh-Nutzung"
         }
       },
       "sections": {
@@ -14529,6 +14538,106 @@
         "title": "Keine Personen gefunden",
         "description": "Keine passenden aktiven, gültigen Verzeichnisdaten. Bitten Sie Ihren Admin, die Synchronisierung zu prüfen."
       }
+    }
+  },
+  "orgmeshEnterprise": {
+    "common": {
+      "accessRequired": "Voller Administratorzugriff ist erforderlich.",
+      "loading": "Wird geladen…",
+      "unavailable": "Der Dienst ist nicht verfügbar. Versuchen Sie es erneut.",
+      "reload": "Neu laden",
+      "cancel": "Abbrechen",
+      "save": "Speichern",
+      "disabled": "Diese Funktion ist deaktiviert. Das statische Branding bleibt verfügbar.",
+      "authInterrupted": "Ihre Sitzung hat sich geändert. Melden Sie sich vor dem Speichern erneut an.",
+      "failed": "Die Anfrage ist fehlgeschlagen. Ihre Änderungen bleiben erhalten."
+    },
+    "branding": {
+      "title": "OrgMesh-Branding",
+      "description": "Legen Sie den Anwendungsnamen und die Begrüßung fest. Nur geprüfte lokale Logos sind verfügbar.",
+      "name": {
+        "label": "Anwendungsname",
+        "help": "Verwenden Sie 1–50 Zeichen als Klartext."
+      },
+      "greeting": {
+        "label": "Begrüßung",
+        "help": "Optional. Bis zu 120 Zeichen als Klartext."
+      },
+      "logo": {
+        "label": "Geprüftes Logo",
+        "description": "OrgMesh-Standard"
+      },
+      "version": "Version {version}",
+      "static": "Statisches Branding",
+      "dynamic": "Gespeichertes Branding",
+      "conflict": "Ein anderer Administrator hat das Branding geändert. Ihre Änderungen bleiben erhalten. Laden Sie die aktuelle Version neu. Dabei werden Ihre Änderungen verworfen.",
+      "unavailable": "Branding ist nicht verfügbar. Ihre Änderungen bleiben erhalten. Versuchen Sie es erneut oder laden Sie neu.",
+      "validation": "Der Name muss 1–50 Zeichen und die Begrüßung höchstens 120 Zeichen enthalten. Verwenden Sie Klartext ohne HTML oder Steuerzeichen.",
+      "saved": "Branding gespeichert."
+    },
+    "audit": {
+      "title": "OrgMesh-Audit",
+      "description": "Lesen Sie Branding-Änderungen dieser Organisation. Ereignisse enthalten Feldnamen und Versionen, nicht die vollständige Begrüßung.",
+      "empty": "Keine Branding-Änderungen in diesem Zeitraum.",
+      "rangeError": "Wählen Sie einen gültigen Zeitraum von höchstens 90 Tagen.",
+      "start": "Beginn (UTC)",
+      "end": "Ende (UTC)",
+      "action": "Aktion",
+      "allActions": "Alle Aktionen",
+      "created": "Branding erstellt",
+      "updated": "Branding geändert",
+      "result": "Ergebnis",
+      "allResults": "Alle Ergebnisse",
+      "success": "Erfolgreich",
+      "apply": "Filter anwenden",
+      "next": "Nächste Seite",
+      "first": "Erste Seite",
+      "time": "Zeit",
+      "actor": "Akteur",
+      "resource": "Ressource",
+      "versions": "Versionen {before} → {after}",
+      "fields": "Geänderte Felder: {fields}",
+      "request": "Anfrage-ID: {id}",
+      "fieldName": "Name",
+      "fieldGreeting": "Begrüßung",
+      "fieldLogo": "Logo-Ressource",
+      "resourceName": "Branding-Konfiguration",
+      "actorKind": "Benutzer {id}"
+    },
+    "usage": {
+      "title": "OrgMesh-Nutzung",
+      "description": "Veröffentlichte aggregierte Nutzung dieser Organisation. Wählen Sie ganze UTC-Tage einschließlich des Enddatums.",
+      "start": "Startdatum (UTC)",
+      "end": "Enddatum (UTC, einschließlich)",
+      "groupBy": "Gruppieren nach",
+      "day": "Tag",
+      "model": "Modell",
+      "flow": "Ablauf",
+      "apply": "Daten anwenden",
+      "rangeError": "Wählen Sie ganze Tage innerhalb der letzten 90 UTC-Tage. Das Startdatum darf nicht nach dem Enddatum liegen.",
+      "disabled": "Diese Funktion ist deaktiviert.",
+      "unavailable": "Kein veröffentlichter Nutzungssnapshot verfügbar. Verkürzen Sie den Zeitraum oder wählen Sie die tägliche Gruppierung und laden Sie neu.",
+      "waiting": "Warten auf den ersten vollständigen UTC-Tag und dessen Veröffentlichung. Der Aktivierungstag ist ausgeschlossen.",
+      "empty": "Keine Nutzung in diesem veröffentlichten Zeitraum.",
+      "groups": "Nutzungsgruppen",
+      "activatedAt": "Aktiviert (UTC): {time}",
+      "collectionStart": "Erfassung ab {time} (UTC). Frühere Tage sind ausgeschlossen.",
+      "coverage": "Veröffentlichter Zeitraum (UTC, Ende ausgeschlossen): {start} – {end}",
+      "publishedAt": "Zuletzt veröffentlicht (UTC): {time}",
+      "stale": "Veraltete Daten. Angezeigt wird der Snapshot der aktuellen Sitzung, veröffentlicht am {time} (UTC).",
+      "intraday": "Werte des aktuellen Tages sind tägliche Quellaggregate zum Veröffentlichungszeitpunkt, keine genauen untertägigen Intervalle.",
+      "pricingNotice": "Geschätzte US-Dollar-Cent aus der Quelle; 0 kann fehlende Preise bedeuten. Keine abgerechneten Kosten.",
+      "categoryNotice": "Benutzer- und Systemschätzungen bleiben getrennt, da sich Quellkosten überschneiden können.",
+      "user": "Benutzer",
+      "incognitoUser": "Inkognito-Benutzer",
+      "systemAttributed": "Zugeordnetes System",
+      "systemUnattributed": "Nicht zugeordnetes System",
+      "inputTokens": "Eingabetokens: {value}",
+      "outputTokens": "Ausgabetokens: {value}",
+      "totalTokens": "Tokens insgesamt: {value}",
+      "cacheReadTokens": "Cache-Lesetokens: {value}",
+      "cacheCreationTokens": "Cache-Erstellungstokens: {value}",
+      "cost": "Geschätzte Kosten (US-Dollar-Cent): {value}"
     }
   }
 }

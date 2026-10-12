@@ -13491,6 +13491,15 @@
         },
         "webSearch": {
           "label": "Recherche web"
+        },
+        "orgmeshBranding": {
+          "label": "Marque OrgMesh"
+        },
+        "orgmeshAudit": {
+          "label": "Audit OrgMesh"
+        },
+        "orgmeshUsage": {
+          "label": "Utilisation OrgMesh"
         }
       },
       "sections": {
@@ -14529,6 +14538,106 @@
         "title": "Aucune personne trouvée",
         "description": "Aucune donnée active et valide ne correspond. Demandez à votre administrateur de vérifier la synchronisation."
       }
+    }
+  },
+  "orgmeshEnterprise": {
+    "common": {
+      "accessRequired": "Un accès administrateur complet est requis.",
+      "loading": "Chargement…",
+      "unavailable": "Ce service est indisponible. Réessayez.",
+      "reload": "Recharger",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "disabled": "Cette fonction est désactivée. La marque statique reste disponible.",
+      "authInterrupted": "Votre session a changé. Reconnectez-vous avant d’enregistrer.",
+      "failed": "La demande a échoué. Vos modifications sont conservées."
+    },
+    "branding": {
+      "title": "Marque OrgMesh",
+      "description": "Définissez le nom et le message d’accueil de l’application. Seuls les logos locaux vérifiés sont disponibles.",
+      "name": {
+        "label": "Nom de l’application",
+        "help": "Utilisez 1 à 50 caractères de texte brut."
+      },
+      "greeting": {
+        "label": "Message d’accueil",
+        "help": "Facultatif. Utilisez jusqu’à 120 caractères de texte brut."
+      },
+      "logo": {
+        "label": "Logo vérifié",
+        "description": "Logo OrgMesh par défaut"
+      },
+      "version": "Version {version}",
+      "static": "Marque statique",
+      "dynamic": "Marque enregistrée",
+      "conflict": "Un autre administrateur a modifié la marque. Vos modifications sont conservées. Rechargez pour voir la dernière version ; ces modifications seront abandonnées.",
+      "unavailable": "La marque est indisponible. Vos modifications sont conservées. Réessayez ou rechargez.",
+      "validation": "Saisissez un nom de 1 à 50 caractères et un message d’accueil de 120 caractères maximum. Utilisez du texte brut sans HTML ni caractères de contrôle.",
+      "saved": "Marque enregistrée."
+    },
+    "audit": {
+      "title": "Audit OrgMesh",
+      "description": "Consultez les modifications de marque de cette organisation. Les événements contiennent les noms des champs et les versions, pas le message d’accueil complet.",
+      "empty": "Aucune modification de marque sur cette période.",
+      "rangeError": "Choisissez une période valide de 90 jours maximum.",
+      "start": "Début (UTC)",
+      "end": "Fin (UTC)",
+      "action": "Action",
+      "allActions": "Toutes les actions",
+      "created": "Marque créée",
+      "updated": "Marque modifiée",
+      "result": "Résultat",
+      "allResults": "Tous les résultats",
+      "success": "Réussite",
+      "apply": "Appliquer les filtres",
+      "next": "Page suivante",
+      "first": "Première page",
+      "time": "Heure",
+      "actor": "Acteur",
+      "resource": "Ressource",
+      "versions": "Versions {before} → {after}",
+      "fields": "Champs modifiés : {fields}",
+      "request": "ID de demande : {id}",
+      "fieldName": "Nom",
+      "fieldGreeting": "Message d’accueil",
+      "fieldLogo": "Ressource du logo",
+      "resourceName": "Configuration de marque",
+      "actorKind": "Utilisateur {id}"
+    },
+    "usage": {
+      "title": "Utilisation OrgMesh",
+      "description": "Consultez les agrégats publiés pour cette organisation. Choisissez des journées UTC complètes, date de fin incluse.",
+      "start": "Date de début (UTC)",
+      "end": "Date de fin (UTC, incluse)",
+      "groupBy": "Regrouper par",
+      "day": "Jour",
+      "model": "Modèle",
+      "flow": "Flux",
+      "apply": "Appliquer les dates",
+      "rangeError": "Choisissez des journées parmi les 90 derniers jours UTC, avec le début au plus tard à la fin.",
+      "disabled": "Cette fonctionnalité est désactivée.",
+      "unavailable": "Aucun instantané publié disponible. Réduisez la période ou choisissez le regroupement quotidien, puis rechargez.",
+      "waiting": "En attente de la première journée UTC complète et de sa publication. Le jour d’activation est exclu.",
+      "empty": "Aucune utilisation dans cette période publiée.",
+      "groups": "Groupes d’utilisation",
+      "activatedAt": "Activation (UTC) : {time}",
+      "collectionStart": "Collecte à partir de {time} (UTC). Les dates antérieures sont exclues.",
+      "coverage": "Période publiée (UTC, fin exclue) : {start} – {end}",
+      "publishedAt": "Dernière publication (UTC) : {time}",
+      "stale": "Données anciennes. Affichage de l’instantané de la session actuelle publié à {time} (UTC).",
+      "intraday": "Les valeurs du jour sont des agrégats quotidiens de la source au moment de la publication, pas des intervalles intrajournaliers précis.",
+      "pricingNotice": "Centimes de dollar américain estimés par la source ; 0 peut signaler un tarif manquant. Ce ne sont pas des frais réglés.",
+      "categoryNotice": "Les estimations utilisateur et système restent séparées car les coûts sources peuvent se chevaucher.",
+      "user": "Utilisateur",
+      "incognitoUser": "Utilisateur incognito",
+      "systemAttributed": "Système attribué",
+      "systemUnattributed": "Système non attribué",
+      "inputTokens": "Tokens d’entrée : {value}",
+      "outputTokens": "Tokens de sortie : {value}",
+      "totalTokens": "Total des tokens : {value}",
+      "cacheReadTokens": "Tokens de lecture du cache : {value}",
+      "cacheCreationTokens": "Tokens de création du cache : {value}",
+      "cost": "Coût estimé (centimes USD) : {value}"
     }
   }
 }

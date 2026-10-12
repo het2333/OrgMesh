@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "identity": {
+    "version": 1,
+    "tenant_id": "public",
+    "actor_kind": "anonymous",
+    "user_id": "",
+    "operation": "branding.read",
+    "request_id": "22222222-2222-4222-8222-222222222222",
+    "audience": "orgmesh-enterprise/v1",
+    "issued_at": "2026-10-12T10:00:00Z",
+    "expires_at": "2026-10-12T10:00:05Z"
+  },
+  "request": {
+    "operation": "branding.read"
+  }
+}

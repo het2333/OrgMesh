@@ -1,0 +1,11 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>OrgMesh</title>
+  <rect x="1" y="1" width="62" height="62" rx="16" fill="#102C4A"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="15.5" stroke="#FFFFFF" stroke-opacity="0.12"/>
+  <g stroke-width="8" stroke-linecap="round">
+    <path d="M18 18C25.73 10.27 38.27 10.27 46 18" stroke="#E9FFFA"/>
+    <path d="M46 18C53.73 25.73 53.73 38.27 46 46" stroke="#30D6BE"/>
+    <path d="M46 46C38.27 53.73 25.73 53.73 18 46" stroke="#E9FFFA"/>
+    <path d="M18 46C10.27 38.27 10.27 25.73 18 18" stroke="#30D6BE"/>
+  </g>
+</svg>

@@ -13491,6 +13491,15 @@
         },
         "webSearch": {
           "label": "Web Search"
+        },
+        "orgmeshBranding": {
+          "label": "OrgMesh branding"
+        },
+        "orgmeshAudit": {
+          "label": "OrgMesh audit"
+        },
+        "orgmeshUsage": {
+          "label": "OrgMesh usage"
         }
       },
       "sections": {
@@ -14529,6 +14538,106 @@
         "title": "No people found",
         "description": "There is no matching active, unexpired directory data. Ask your admin to check directory sync."
       }
+    }
+  },
+  "orgmeshEnterprise": {
+    "common": {
+      "accessRequired": "Full administrator access is required.",
+      "loading": "Loading…",
+      "unavailable": "This service is unavailable. Try again.",
+      "reload": "Reload",
+      "cancel": "Cancel",
+      "save": "Save",
+      "disabled": "This feature is disabled. Static branding remains available.",
+      "authInterrupted": "Your session changed. Sign in again before saving.",
+      "failed": "The request failed. Your changes are still here."
+    },
+    "branding": {
+      "title": "OrgMesh branding",
+      "description": "Set the application name and greeting. Only reviewed local logo assets are available.",
+      "name": {
+        "label": "Application name",
+        "help": "Use 1–50 characters of plain text."
+      },
+      "greeting": {
+        "label": "Greeting",
+        "help": "Optional. Use up to 120 characters of plain text."
+      },
+      "logo": {
+        "label": "Reviewed logo",
+        "description": "OrgMesh default"
+      },
+      "version": "Version {version}",
+      "static": "Static branding",
+      "dynamic": "Saved branding",
+      "conflict": "Another administrator changed the branding. Your edits are still here. Reload to review the latest version; reloading discards these edits.",
+      "unavailable": "Branding is unavailable. Your edits are still here. Try again or reload.",
+      "validation": "Enter a name of 1–50 characters and a greeting of up to 120 characters. Use plain text without HTML or control characters.",
+      "saved": "Branding saved."
+    },
+    "audit": {
+      "title": "OrgMesh audit",
+      "description": "Read branding changes for this organization. Events contain field names and versions, not the full greeting.",
+      "empty": "No branding changes in this range.",
+      "rangeError": "Choose a valid range of up to 90 days.",
+      "start": "Start (UTC)",
+      "end": "End (UTC)",
+      "action": "Action",
+      "allActions": "All actions",
+      "created": "Branding created",
+      "updated": "Branding updated",
+      "result": "Result",
+      "allResults": "All results",
+      "success": "Success",
+      "apply": "Apply filters",
+      "next": "Next page",
+      "first": "First page",
+      "time": "Time",
+      "actor": "Actor",
+      "resource": "Resource",
+      "versions": "Versions {before} → {after}",
+      "fields": "Changed fields: {fields}",
+      "request": "Request ID: {id}",
+      "fieldName": "Name",
+      "fieldGreeting": "Greeting",
+      "fieldLogo": "Logo asset",
+      "resourceName": "Branding configuration",
+      "actorKind": "User {id}"
+    },
+    "usage": {
+      "title": "OrgMesh usage",
+      "description": "Read published aggregate usage for this organization. Choose whole UTC dates, including the end date.",
+      "start": "Start date (UTC)",
+      "end": "End date (UTC, inclusive)",
+      "groupBy": "Group by",
+      "day": "Day",
+      "model": "Model",
+      "flow": "Flow",
+      "apply": "Apply dates",
+      "rangeError": "Choose whole dates within the most recent 90 UTC dates, with the start on or before the end.",
+      "disabled": "This feature is disabled.",
+      "unavailable": "No published usage snapshot is available. Narrow the date range or choose daily grouping, then reload.",
+      "waiting": "Waiting for the first full UTC day and its publication. The activation day is excluded.",
+      "empty": "No usage in this published range.",
+      "groups": "Usage groups",
+      "activatedAt": "Activated (UTC): {time}",
+      "collectionStart": "Collection starts: {time} (UTC). Earlier dates are excluded.",
+      "coverage": "Published coverage (UTC, end exclusive): {start} – {end}",
+      "publishedAt": "Last published (UTC): {time}",
+      "stale": "Stale data. Showing the current session’s snapshot published at {time} (UTC).",
+      "intraday": "Current-day values are daily source aggregates as of publication, not exact intraday intervals.",
+      "pricingNotice": "Source-estimated USD cents; 0 may mean missing pricing. These are not settled charges.",
+      "categoryNotice": "User and system estimates stay separate because source costs may overlap.",
+      "user": "User",
+      "incognitoUser": "Incognito user",
+      "systemAttributed": "Attributed system",
+      "systemUnattributed": "Unattributed system",
+      "inputTokens": "Input tokens: {value}",
+      "outputTokens": "Output tokens: {value}",
+      "totalTokens": "Total tokens: {value}",
+      "cacheReadTokens": "Cache-read tokens: {value}",
+      "cacheCreationTokens": "Cache-creation tokens: {value}",
+      "cost": "Estimated cost (USD cents): {value}"
     }
   }
 }

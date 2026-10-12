@@ -10,6 +10,7 @@ import React, {
 import { useAdminNavLabels } from "@/lib/adminNavLabels";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useEnterpriseCapabilities } from "@/lib/orgmesh-enterprise/hooks";
 import { useSettings } from "@/lib/settings/hooks";
 import { SidebarLayouts, useSidebarState } from "@opal/layouts";
 import { useCustomAnalyticsEnabled } from "@/lib/hooks/useCustomAnalyticsEnabled";
@@ -53,6 +54,7 @@ export default function AdminSidebar() {
   const { customAnalyticsEnabled } = useCustomAnalyticsEnabled();
   const { adminCapabilities } = useUser();
   const settings = useSettings();
+  const enterpriseCapabilities = useEnterpriseCapabilities();
   const tier = settings?.tier;
   const { data: billingData, isLoading: billingLoading } =
     useBillingInformation();
@@ -80,6 +82,9 @@ export default function AdminSidebar() {
       settings?.query_history_type !== "disabled" &&
       !settings?.hide_query_history_from_admin_panel,
     craftAvailable: settings?.onyx_craft_available ?? false,
+    orgmeshUsageEnabled:
+      !enterpriseCapabilities.error &&
+      enterpriseCapabilities.data?.usage_enabled === true,
   };
 
   const allItems = buildItems(adminCapabilities, flags, settings);

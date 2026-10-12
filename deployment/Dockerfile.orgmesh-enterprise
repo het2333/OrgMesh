@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: MIT
+# Review-only template. Resolve official image digests before an approved build.
+FROM golang:1.27.1-bookworm AS builder
+WORKDIR /src
+COPY services/orgmesh-enterprise/go.mod services/orgmesh-enterprise/go.sum ./
+RUN go mod download
+COPY services/orgmesh-enterprise/ ./
+RUN CGO_ENABLED=0 go build -trimpath -o /out/enterprised ./cmd/enterprised
+
+FROM debian:bookworm-slim AS runtime
+# Keep the installed Debian copyright files, including transitive package notices.
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
+    && test -s /usr/share/doc/curl/copyright \
+    && test -s /usr/share/doc/ca-certificates/copyright \
+    && install -d -m 0700 -o 10001 -g 10001 /run/orgmesh-enterprise \
+    && mkdir -p /usr/share/doc/orgmesh-enterprise \
+    && dpkg-query -W > /usr/share/doc/orgmesh-enterprise/runtime-packages.txt
+COPY --from=builder /out/enterprised /usr/local/bin/enterprised
+COPY LICENSE /usr/share/doc/orgmesh-enterprise/repository-LICENSE
+COPY services/orgmesh-enterprise/THIRD_PARTY_NOTICES.txt /usr/share/doc/orgmesh-enterprise/THIRD_PARTY_NOTICES.txt
+COPY services/orgmesh-enterprise/RUNTIME-NOTICES.md /usr/share/doc/orgmesh-enterprise/RUNTIME-NOTICES.md
+USER 10001:10001
+HEALTHCHECK --interval=15s --timeout=3s --start-period=15s --retries=3 \
+    CMD curl --fail --silent --show-error --max-time 2 --unix-socket /run/orgmesh-enterprise/enterprise.sock http://localhost/readyz >/dev/null || exit 1
+ENTRYPOINT ["/usr/local/bin/enterprised"]

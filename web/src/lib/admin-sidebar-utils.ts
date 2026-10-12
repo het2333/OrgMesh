@@ -17,6 +17,9 @@ export type { FeatureFlags } from "@/lib/admin-routes";
  * `sidebar.adminNav.items.<id>.label` message, resolved in `AdminSidebar`.
  */
 export type AdminNavItemId =
+  | "orgmeshBranding"
+  | "orgmeshAudit"
+  | "orgmeshUsage"
   | "languageModels"
   | "webSearch"
   | "imageGeneration"
@@ -73,6 +76,9 @@ export const NAV_ITEM_IDS: Record<
   keyof typeof ADMIN_ROUTES,
   AdminNavItemId | null
 > = {
+  ORGMESH_BRANDING: "orgmeshBranding",
+  ORGMESH_AUDIT: "orgmeshAudit",
+  ORGMESH_USAGE: "orgmeshUsage",
   LLM_MODELS: "languageModels",
   WEB_SEARCH: "webSearch",
   IMAGE_GENERATION: "imageGeneration",

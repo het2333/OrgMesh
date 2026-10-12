@@ -167,6 +167,8 @@ export interface CombinedSettings {
   webVersion: string | null;
   webDomain: string | null;
   appName: string;
+  logoUrl: string;
+  greeting: string;
 }
 
 /**
@@ -176,6 +178,8 @@ export interface CombinedSettings {
 export function toSettings({
   enterprise: _enterprise,
   appName: _appName,
+  logoUrl: _logoUrl,
+  greeting: _greeting,
   vectorDbEnabled: _vectorDbEnabled,
   isLoading: _isLoading,
   error: _error,
@@ -192,17 +196,13 @@ export function toSettings({
  * values like `appName`.
  */
 export interface AppSettings extends Settings {
-  /** Raw enterprise settings — null when EE is disabled or not yet loaded. */
+  /** Compatibility field. Explicit policy callers use useEnterpriseSettings. */
   enterprise: EnterpriseSettings | null;
-  /** Resolved display name: enterprise.application_name || "Onyx". */
+  /** Display name from independent OrgMesh branding. */
   appName: string;
-  /**
-   * URL of the logo image to render, or `null` to use the default Onyx SVG.
-   * Includes a cache-buster that updates whenever enterprise settings are
-   * revalidated, forcing the browser to re-fetch after an admin uploads a
-   * new logo.
-   */
+  /** Reviewed local asset URL. Never a remote URL or legacy logo endpoint. */
   logoUrl: string | null;
+  greeting: string;
   /** False when DISABLE_VECTOR_DB is set server-side. */
   vectorDbEnabled: boolean;
   isLoading: boolean;

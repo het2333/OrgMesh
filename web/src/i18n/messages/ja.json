@@ -13491,6 +13491,15 @@
         },
         "webSearch": {
           "label": "Web 検索"
+        },
+        "orgmeshBranding": {
+          "label": "OrgMesh ブランド"
+        },
+        "orgmeshAudit": {
+          "label": "OrgMesh 監査"
+        },
+        "orgmeshUsage": {
+          "label": "OrgMesh 使用量"
         }
       },
       "sections": {
@@ -14529,6 +14538,106 @@
         "title": "メンバーが見つかりません",
         "description": "一致する有効な在職者データがありません。管理者に同期の確認を依頼してください。"
       }
+    }
+  },
+  "orgmeshEnterprise": {
+    "common": {
+      "accessRequired": "完全な管理者権限が必要です。",
+      "loading": "読み込み中…",
+      "unavailable": "サービスを利用できません。再試行してください。",
+      "reload": "再読み込み",
+      "cancel": "キャンセル",
+      "save": "保存",
+      "disabled": "この機能は無効です。静的ブランドは利用できます。",
+      "authInterrupted": "セッションが変わりました。保存前に再度ログインしてください。",
+      "failed": "要求が失敗しました。変更は保持されています。"
+    },
+    "branding": {
+      "title": "OrgMesh ブランド",
+      "description": "アプリ名と挨拶を設定します。審査済みのローカルロゴのみ利用できます。",
+      "name": {
+        "label": "アプリ名",
+        "help": "1～50文字のプレーンテキストを使用します。"
+      },
+      "greeting": {
+        "label": "挨拶",
+        "help": "任意。120文字以内のプレーンテキストを使用します。"
+      },
+      "logo": {
+        "label": "審査済みロゴ",
+        "description": "OrgMesh 既定ロゴ"
+      },
+      "version": "バージョン {version}",
+      "static": "静的ブランド",
+      "dynamic": "保存済みブランド",
+      "conflict": "別の管理者がブランドを変更しました。編集内容は保持されています。最新バージョンを確認するには再読み込みしてください。編集内容は破棄されます。",
+      "unavailable": "ブランドを利用できません。編集内容は保持されています。再試行するか再読み込みしてください。",
+      "validation": "名前は1～50文字、挨拶は120文字以内です。HTMLや制御文字を含まないプレーンテキストを使用してください。",
+      "saved": "ブランドを保存しました。"
+    },
+    "audit": {
+      "title": "OrgMesh 監査",
+      "description": "この組織のブランド変更を確認します。イベントにはフィールド名とバージョンが含まれ、挨拶の全文は含まれません。",
+      "empty": "この期間のブランド変更はありません。",
+      "rangeError": "90日以内の有効な期間を選択してください。",
+      "start": "開始（UTC）",
+      "end": "終了（UTC）",
+      "action": "操作",
+      "allActions": "すべての操作",
+      "created": "ブランド作成",
+      "updated": "ブランド更新",
+      "result": "結果",
+      "allResults": "すべての結果",
+      "success": "成功",
+      "apply": "フィルターを適用",
+      "next": "次のページ",
+      "first": "最初のページ",
+      "time": "時刻",
+      "actor": "実行者",
+      "resource": "リソース",
+      "versions": "バージョン {before} → {after}",
+      "fields": "変更フィールド：{fields}",
+      "request": "要求 ID：{id}",
+      "fieldName": "名前",
+      "fieldGreeting": "挨拶",
+      "fieldLogo": "ロゴアセット",
+      "resourceName": "ブランド設定",
+      "actorKind": "ユーザー {id}"
+    },
+    "usage": {
+      "title": "OrgMesh 使用量",
+      "description": "この組織の公開済み集計使用量を確認します。終了日を含むUTCの日付を選択してください。",
+      "start": "開始日（UTC）",
+      "end": "終了日（UTC、当日を含む）",
+      "groupBy": "集計単位",
+      "day": "日",
+      "model": "モデル",
+      "flow": "フロー",
+      "apply": "日付を適用",
+      "rangeError": "直近90日以内のUTC日付を選択し、開始日を終了日以前にしてください。",
+      "disabled": "この機能は無効です。",
+      "unavailable": "公開済み使用量スナップショットがありません。日付範囲を狭めるか日別集計を選び、再読み込みしてください。",
+      "waiting": "最初の完全なUTC日とその公開を待っています。有効化当日は含まれません。",
+      "empty": "この公開済み範囲に使用量はありません。",
+      "groups": "使用量グループ",
+      "activatedAt": "有効化日時（UTC）：{time}",
+      "collectionStart": "収集開始：{time}（UTC）。それ以前の日付は含まれません。",
+      "coverage": "公開済み対象期間（UTC、終了時刻を含まない）：{start} ～ {end}",
+      "publishedAt": "最終公開日時（UTC）：{time}",
+      "stale": "古いデータです。現在のセッションで{time}（UTC）に公開されたスナップショットを表示しています。",
+      "intraday": "当日の値は公開時点の日次集計であり、正確な日内イベント区間ではありません。",
+      "pricingNotice": "ソースの推定米ドルセント額です。0は価格情報の欠落を示す場合があります。確定請求額ではありません。",
+      "categoryNotice": "ソース費用が重複する場合があるため、ユーザーとシステムの推定額は別々に表示します。",
+      "user": "ユーザー",
+      "incognitoUser": "シークレットユーザー",
+      "systemAttributed": "帰属ありシステム",
+      "systemUnattributed": "帰属なしシステム",
+      "inputTokens": "入力トークン：{value}",
+      "outputTokens": "出力トークン：{value}",
+      "totalTokens": "合計トークン：{value}",
+      "cacheReadTokens": "キャッシュ読み取りトークン：{value}",
+      "cacheCreationTokens": "キャッシュ作成トークン：{value}",
+      "cost": "推定費用（米ドルセント）：{value}"
     }
   }
 }

@@ -51,7 +51,11 @@ logger = setup_logger()
 
 celery_app = Celery(__name__)
 celery_app.config_from_object("onyx.background.celery.configs.primary")
-celery_app.conf.imports = (*celery_app.conf.imports, "onyx.background.celery.tasks.orgmesh_tasks")
+celery_app.conf.imports = (
+    *celery_app.conf.imports,
+    "onyx.background.celery.tasks.orgmesh_tasks",
+    "onyx.background.celery.tasks.orgmesh_enterprise_tasks",
+)
 celery_app.Task = app_base.TenantAwareTask  # ty: ignore[invalid-assignment]
 
 
