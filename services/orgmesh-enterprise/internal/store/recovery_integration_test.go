@@ -51,7 +51,7 @@ func TestRecoveryFreshMigrationsPreserveLegacySchema(t *testing.T) {
 		if err := pool.QueryRow(ctx, `SELECT jsonb_agg(to_jsonb(fixture) ORDER BY id)::text FROM public.orgmesh_recovery_legacy_fixture fixture`).Scan(&data); err != nil {
 			t.Fatal(err)
 		}
-		if err := pool.QueryRow(ctx, `SELECT coalesce(string_agg(c.relname || ':' || c.relkind, ',' ORDER BY c.relname), '') FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public'`).Scan(&objects); err != nil {
+		if err := pool.QueryRow(ctx, `SELECT coalesce(string_agg(c.relname || ':' || c.relkind::text, ',' ORDER BY c.relname), '') FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public'`).Scan(&objects); err != nil {
 			t.Fatal(err)
 		}
 		if err := pool.QueryRow(ctx, `SELECT coalesce(string_agg(c.conname || ':' || pg_catalog.pg_get_constraintdef(c.oid), ',' ORDER BY c.conname), '') FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_namespace n ON n.oid=c.connamespace WHERE n.nspname='public'`).Scan(&constraints); err != nil {

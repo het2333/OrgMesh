@@ -19,8 +19,10 @@ It does not disable transaction audit for successful branding writes.
 Usage requires the usage switch in Python API, producer, and Go.
 Phase one rejects multi-tenant enablement and mismatched configured organizations.
 
-The implementation has offline checks. Real database, socket, and app acceptance remains pending.
-This execution environment denied AF_UNIX creation with `EPERM`.
+The first delivery had offline checks. The dedicated cloud run now passes real database and socket checks.
+See [the cloud validation record](orgmesh-enterprise-phase1-cloud-validation-2026-10-12.md) for commands and limits.
+Authenticated app, browser, full frontend test, and production-build acceptance remain incomplete.
+The previous execution environment denied AF_UNIX creation with `EPERM`.
 PostgreSQL binaries and a running service were absent.
 The separate PostgreSQL probe returned connection refused at `127.0.0.1:5432`.
 These facts do not establish a general TCP prohibition.
