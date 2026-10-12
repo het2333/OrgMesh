@@ -40,6 +40,7 @@ The package manifest records the final corrective commit and tree.
 | Disabled-feature startup | PASS | Community authentication and static brand work; private endpoints and query controls are gated |
 | Real scheduled collection | PASS | Repository Beat, Redis, primary worker, private Go socket, and PostgreSQL; revisions 7 to 9 |
 | Real OpenSearch keyword client | PASS | Repository-pinned OpenSearch and a public synthetic index fixture |
+| Browser visual consistency | PASS | 12 initial viewport pairs plus four mobile lower-content pairs; delivered-source reference with identical licensed local fonts |
 
 The PostgreSQL suite verifies branding, audit, and receipt atomicity with real failure triggers.
 It also verifies version concurrency, retry receipts, tenant isolation, and stable audit pagination.
@@ -83,29 +84,67 @@ The recovery page opens the existing compose route instead of the workspace home
 
 | Gate | Result | Exact limit |
 | --- | --- | --- |
-| Normal full frontend tests | FAIL | 169 suites: 167 pass, two fail; 1472 tests: 1465 pass, seven fail; no skips |
+| Normal full frontend tests | FAIL | Latest controlled current run: 169 suites, 168 pass; 1472 tests, 1470 pass and two CustomModal failures; no skips or changed timeouts |
 | Community mock-chat rendering | FAIL | Backend attempts the default Hugging Face tokenizer download; current proxy returns 403 |
 | Full search-enabled Community startup | FAIL | OpenSearch initializes, but embedding-model construction requires the same unavailable tokenizer |
 | Three complete chat-and-search recovery scenarios | UNRUN | The two failures above prevent their combined application assertions |
-| Real restricted-PAT authorization | UNRUN | No approved restricted PAT is present; no PAT was created |
+| Real restricted-PAT authorization | UNRUN | Requires an existing authorized restricted PAT for the isolated test account; no PAT was created |
 | Real multiple-organization browser sessions | UNSUPPORTED | Phase one explicitly supports one configured organization; mocked context-switch UI and real tenant rejection checks pass |
-| Screenshot or visual-equivalence review | UNRUN | Functional browser checks and font loading do not establish pixel equivalence |
+| Original Google Fonts pixel equivalence | UNRUN | The original remote font build is unavailable; screenshot comparisons deliberately use identical official local font files on both versions |
 
-The package retains normal frontend failures and baseline comparisons.
-Earlier runs varied under concurrent service preparation. No timeout was increased for the final full-suite gate.
-The final failures contain six CustomModal cases and one skill-import case.
-The original baseline reproduces the CustomModal failures and several SkillEditor failures.
-The skill-import component and its test are unchanged from the baseline.
-Its three isolated tests pass on both baseline and current source with normal limits.
-Its final full-suite timeout remains unresolved. The suite gate stays failed.
-The account-switch test passes at its normal limit in the earlier quiet full run.
-The final matrix records the last complete normal run and each scoped result.
+The final controlled frontend comparison ran baseline and current sequentially on the same cloud host.
+Both used pinned dependencies, a new independent Jest cache, CPU quota four, memory limit 16 GiB,
+and the default 5000 ms test timeout. No test was filtered or skipped.
+Baseline passed 1383 of 1386 tests, with three CustomModal failures.
+Current passed 1470 of 1472 tests, with two of the same CustomModal failures.
+All 78 phase-one tests passed. The previously timed-out skill-import test passed in both full runs
+(968 ms baseline, 1229 ms current). A replay of the earlier failing run's suite prefix also passed
+that test with default limits; the baseline replay omitted only the two absent phase-one files.
+Its component, test, and test utilities are unchanged, and Jest mocks its UserProvider dependency.
+These comparisons do not establish the cause of the historical timeout. It is unreproduced,
+not described as fixed or confirmed to be a baseline defect. No business-code change is justified
+by the current evidence. The complete frontend gate remains failed for the two reproduced cases.
+Raw full results, commands, resource measurements, source identities, and replay results are included.
+
+The visual comparison runs actual production frontends against the same real Community API and
+Go/PostgreSQL fixture. The reference is delivered source commit `73fdfbacc87a1073f88004d3b55bc72f8e63e2d9`,
+with only identical local font loading and tracing roots needed to build on this host.
+The three phase-one views, shared/Opal packages, and global CSS have identical source identities.
+It compares branding, audit, and usage in light/dark themes at 1280x720 and 390x844,
+then scrolls mobile audit and usage to review pagination and lower usage groups.
+Locale, UTC timezone, browser Date, fonts, browser, and fixtures are controlled.
+No copyright or content is masked. Screenshots, source controls, and strict RGB pixel counts are included.
+The repository screenshot tolerance is threshold 0.2 and maximum differing-pixel ratio 1%.
+Passing means consistency within that tolerance; it does not mean every pair is pixel identical
+or that the unavailable original Google Fonts rendering is equivalent.
+The actual captured images were reviewed for readable forms, responsive layout, audit rows,
+usage values, and retained attribution. Horizontal overflow assertions also pass.
 
 The OpenSearch fixture uses constant test vectors and verifies only real keyword retrieval through the repository client.
 It does not establish application-route retrieval, semantic search, indexing workers, or chat recovery.
-The missing tokenizer is `nomic-ai/nomic-embed-text-v1/tokenizer.json` from its official Hugging Face repository.
-A supported model cache or approved access to that resource is needed for the full application flow.
-The existing proxy and authentication controls were not changed.
+The exact unavailable resource is
+`https://huggingface.co/nomic-ai/nomic-embed-text-v1/resolve/main/tokenizer.json` (revision `main`).
+The proxy rejects CONNECT with 403 before the metadata HEAD reaches Hugging Face; no download starts.
+Mock chat reaches it through `build_chat_turn -> get_tokenizer -> Tokenizer.from_pretrained`.
+Full startup constructs `EmbeddingModel` before the `SKIP_WARM_UP` check, so that flag does not avoid it.
+No matching tokenizer exists in the configured or inspected caches.
+A temporary synthetic unit fixture verifies the supported cache mechanism only:
+with this ProxyError, an online default still fails even when a matching cache exists;
+`HF_HUB_OFFLINE=1` loads a properly populated cache without network in a fresh process.
+That synthetic cache was deleted and never used to pass chat or search acceptance.
+An authentic official tokenizer cache plus the supported offline setting, or authorized access
+through the existing network path, is the minimum needed for the approved mock-chat/startup checks.
+Semantic retrieval additionally requires the normal model service/weights and an indexed fixture.
+No mirror, authentication override, proxy bypass, or TLS change was attempted.
+
+Real restricted-PAT denial remains necessary for complete private-API security acceptance.
+The routes require both the user's global-admin permission and token scopes implying
+`FULL_ADMIN_PANEL_ACCESS`; there are no separate invented branding/usage scopes.
+The passing unit denial uses a global admin with `Permission.READ_SEARCH`, but does not exercise
+real PAT parsing and authentication. The minimum missing input is an existing authorized restricted
+PAT tied to the matching disposable test account/database, with that admin permission omitted.
+Actual cookie-based admin/member checks do not replace this gate. Source can be handed over with
+the features disabled by default, but full phase-one acceptance is not claimed.
 
 Basic login uses repository test passwords in a disposable Community database.
 Integration mode permits an unset reset/OAuth signing secret; password, session, and permission checks still run.
@@ -154,4 +193,4 @@ For this loopback preview, the existing `OVERRIDE_API_PRODUCTION=true` option en
 Production ingress was not deployed or tested.
 
 The package contains complete changed source, binary-capable patches, a Git bundle, logs, fixture scripts, and gate matrices.
-It excludes browser storage state, credential files, screenshots, and traces.
+It includes the explicitly requested visual comparison PNGs and excludes browser storage state, credential files, test caches, and traces.
