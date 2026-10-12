@@ -53,7 +53,7 @@ export class OrgMeshRecoveryPage {
 
   async expectChatAndSearch() {
     expect(process.env.ORGMESH_RECOVERY_MOCK_LLM_APPROVED).toBe("true");
-    await this.page.goto("/app");
+    await this.page.goto("/app?compose=1");
     await sendMessageAndCaptureStreamPackets(this.page, "Recovery smoke test", {
       mockLlmResponse: "OrgMesh recovery mock answer",
     });

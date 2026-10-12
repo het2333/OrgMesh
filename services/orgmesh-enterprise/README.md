@@ -22,6 +22,10 @@ Phase one rejects `MULTI_TENANT=true`.
 Configure a private Unix socket directory with mode `0700` before startup.
 The socket file has mode `0600`. There is no TCP fallback.
 Processes that share the server UID must be trusted.
+For an isolated host checkout, pass the private path through Go's `--socket` flag.
+Set the same absolute path in Python's `ORGMESH_ENTERPRISE_SOCKET_PATH`.
+The default remains `/run/orgmesh-enterprise/enterprise.sock`.
+Empty, relative, and unclean override paths fail configuration validation.
 
 Python feature flags default to false.
 Missing dynamic branding returns the approved Python static configuration.

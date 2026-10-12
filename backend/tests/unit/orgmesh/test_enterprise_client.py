@@ -23,6 +23,26 @@ from onyx.orgmesh_enterprise.models import (
 from onyx.server.features.orgmesh_enterprise import api
 
 
+def test_routes_use_server_configured_private_socket(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    path = "/tmp/orgmesh-isolated/private/enterprise.sock"
+    monkeypatch.setenv("ORGMESH_ENTERPRISE_SOCKET_PATH", path)
+    assert api.get_client().config.socket_path == path
+
+
+@pytest.mark.parametrize(
+    "path", ["", "relative.sock", "/tmp/../private/enterprise.sock"]
+)
+def test_routes_reject_invalid_server_socket_configuration(
+    monkeypatch: pytest.MonkeyPatch, path: str
+) -> None:
+    monkeypatch.setenv("ORGMESH_ENTERPRISE_SOCKET_PATH", path)
+    with pytest.raises(OnyxError) as error:
+        api.get_client()
+    assert error.value.status_code == 403
+
+
 def test_client_identity_headers_ignored(monkeypatch: pytest.MonkeyPatch) -> None:
     sent: list[dict[str, object]] = []
 

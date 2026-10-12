@@ -5,21 +5,21 @@ export class OrgMeshAuditPage {
   async goto() {
     await this.page.goto("/admin/orgmesh-enterprise/audit");
     await expect(
-      this.page.getByRole("button", { name: "Apply filters", exact: true })
+      this.page.getByRole("button", { name: "Apply filters", exact: true }),
     ).toBeVisible();
   }
   async expectChange(before: number, after: number) {
     await expect(
-      this.page.getByRole("list", { name: "OrgMesh audit", exact: true })
+      this.page.getByRole("list", { name: "OrgMesh audit", exact: true }),
     ).toContainText(`Versions ${before} → ${after}`);
     await expect(
-      this.page.getByRole("list", { name: "OrgMesh audit", exact: true })
+      this.page.getByRole("list", { name: "OrgMesh audit", exact: true }),
     ).toContainText("Changed fields:");
     await expect(
-      this.page.getByRole("list", { name: "OrgMesh audit", exact: true })
+      this.page.getByRole("list", { name: "OrgMesh audit", exact: true }),
     ).toContainText("Success");
     await expect(
-      this.page.getByRole("list", { name: "OrgMesh audit", exact: true })
+      this.page.getByRole("list", { name: "OrgMesh audit", exact: true }),
     ).toContainText("Request ID:");
   }
   async setRange(start: string, end: string) {
@@ -32,7 +32,9 @@ export class OrgMeshAuditPage {
       .click();
   }
   async expectRangeError() {
-    await expect(this.page.getByRole("alert")).toContainText("up to 90 days");
+    await expect(
+      this.page.getByRole("alert").filter({ hasText: "up to 90 days" }),
+    ).toContainText("up to 90 days");
   }
   async selectAction(action: "Branding created" | "Branding updated") {
     await this.page

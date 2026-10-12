@@ -12,7 +12,7 @@ import {
   WebVitals,
 } from "@/lib/analytics/shared";
 import Script from "next/script";
-import { DM_Mono, Hanken_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import StatsOverlayLoader from "@/components/dev/StatsOverlayLoader";
@@ -32,15 +32,18 @@ import { htmlDirForLocale, messageLocale, type HtmlDir } from "@/i18n/config";
 // the composed --font-* variables on <html> below, after the per-locale CJK
 // tail (--font-cjk-sans, defined in globals.css). A generic here would sit
 // before the CJK fonts and swallow every CJK codepoint.
-const hankenGrotesk = Hanken_Grotesk({
-  subsets: ["latin"],
+const hankenGrotesk = localFont({
+  src: "../../public/fonts/hanken-grotesk/HankenGrotesk-Variable.ttf",
+  weight: "100 900",
+  style: "normal",
   display: "swap",
   fallback: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto"],
 });
 
-const dmMono = DM_Mono({
+const dmMono = localFont({
+  src: "../../public/fonts/dm-mono/DMMono-Regular.ttf",
   weight: "400",
-  subsets: ["latin"],
+  style: "normal",
   display: "swap",
   fallback: [
     "SF Mono",

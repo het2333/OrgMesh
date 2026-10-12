@@ -16,7 +16,7 @@ export class OrgMeshBrandingPage {
     const response = await this.page.request.get(`${API}/capabilities`);
     expect(
       response.ok(),
-      "Start the isolated app and private service with branding and audit enabled."
+      "Start the isolated app and private service with branding and audit enabled.",
     ).toBeTruthy();
     expect(await response.json()).toMatchObject({
       branding_enabled: true,
@@ -27,7 +27,7 @@ export class OrgMeshBrandingPage {
   async goto() {
     await this.page.goto("/admin/orgmesh-enterprise/branding");
     await expect(
-      this.page.getByRole("textbox", { name: "Application name", exact: true })
+      this.page.getByRole("textbox", { name: "Application name", exact: true }),
     ).toBeVisible();
   }
 
@@ -78,25 +78,29 @@ export class OrgMeshBrandingPage {
 
   async expectSaved() {
     await expect(this.page.getByRole("status")).toContainText(
-      "Branding saved."
+      "Branding saved.",
     );
   }
   async expectConflict() {
-    await expect(this.page.getByRole("alert")).toContainText(
-      "Another administrator changed"
-    );
+    await expect(
+      this.page
+        .getByRole("alert")
+        .filter({ hasText: "Another administrator changed" }),
+    ).toContainText("Another administrator changed");
   }
   async expectUnavailable() {
-    await expect(this.page.getByRole("alert")).toContainText(
-      "Branding is unavailable"
-    );
+    await expect(
+      this.page
+        .getByRole("alert")
+        .filter({ hasText: "Branding is unavailable" }),
+    ).toContainText("Branding is unavailable");
   }
   async expectValues(name: string, greeting: string) {
     await expect(
-      this.page.getByRole("textbox", { name: "Application name", exact: true })
+      this.page.getByRole("textbox", { name: "Application name", exact: true }),
     ).toHaveValue(name);
     await expect(
-      this.page.getByRole("textbox", { name: "Greeting", exact: true })
+      this.page.getByRole("textbox", { name: "Greeting", exact: true }),
     ).toHaveValue(greeting);
   }
   async cancel() {
@@ -117,7 +121,7 @@ export class OrgMeshBrandingPage {
   }
   async expectReviewedLogo() {
     await expect(
-      this.page.getByRole("img", { name: "OrgMesh default", exact: true })
+      this.page.getByRole("img", { name: "OrgMesh default", exact: true }),
     ).toHaveAttribute("src", "/orgmesh.svg");
   }
 
@@ -126,7 +130,7 @@ export class OrgMeshBrandingPage {
     await this.page.reload();
     await expect(this.page).toHaveURL(/\/auth\//);
     await expect(
-      this.page.getByRole("textbox", { name: "Application name", exact: true })
+      this.page.getByRole("textbox", { name: "Application name", exact: true }),
     ).toHaveCount(0);
   }
 

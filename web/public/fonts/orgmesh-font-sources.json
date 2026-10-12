@@ -1,0 +1,32 @@
+{
+  "repository": "https://github.com/google/fonts",
+  "commit": "66928797f271fed5ee428544e7229685e2d90127",
+  "license": "SIL Open Font License 1.1",
+  "modified_font_data": false,
+  "files": [
+    {
+      "upstream_path": "ofl/hankengrotesk/HankenGrotesk[wght].ttf",
+      "local_path": "web/public/fonts/hanken-grotesk/HankenGrotesk-Variable.ttf",
+      "sha256": "813b3f8fa0965405669a89b38e51bbefd95eef6b8e20d1cb2d8c10cce062662f",
+      "size_bytes": 132892
+    },
+    {
+      "upstream_path": "ofl/hankengrotesk/OFL.txt",
+      "local_path": "web/public/fonts/hanken-grotesk/OFL.txt",
+      "sha256": "e02ccb89a86839b22feff7872ff5cc355cc0f58318d29eee20e2cf83a612f16d",
+      "size_bytes": 4402
+    },
+    {
+      "upstream_path": "ofl/dmmono/DMMono-Regular.ttf",
+      "local_path": "web/public/fonts/dm-mono/DMMono-Regular.ttf",
+      "sha256": "55b4c98f123daebb3ed27947ba47b2af00554fc6284d639a540bcef5e6258ad2",
+      "size_bytes": 49744
+    },
+    {
+      "upstream_path": "ofl/dmmono/OFL.txt",
+      "local_path": "web/public/fonts/dm-mono/OFL.txt",
+      "sha256": "2bada5ea45c3c63b7f1ea1f88ce9672c9e4f0c42b2c3b7378949084fe55a3066",
+      "size_bytes": 4484
+    }
+  ]
+}

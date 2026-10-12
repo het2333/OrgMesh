@@ -58,6 +58,7 @@ class EnterpriseConfig:
                 "ORGMESH_ENTERPRISE_TENANT_ID",
                 os.environ.get("POSTGRES_DEFAULT_SCHEMA", "public"),
             ),
+            socket_path=os.environ.get("ORGMESH_ENTERPRISE_SOCKET_PATH", DEFAULT_SOCKET),
         )
         if os.environ.get("MULTI_TENANT", "false").lower() == "true" and (
             config.branding_enabled or config.audit_enabled or config.usage_enabled

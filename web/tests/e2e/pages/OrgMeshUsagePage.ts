@@ -8,12 +8,7 @@ import type {
 
 const API = "/api/orgmesh-enterprise/v1";
 type Scenario =
-  | "ready"
-  | "waiting"
-  | "unavailable"
-  | "empty"
-  | "outage"
-  | "stale";
+  "ready" | "waiting" | "unavailable" | "empty" | "outage" | "stale";
 
 export class OrgMeshUsagePage {
   private scenario: Scenario = "ready";
@@ -32,10 +27,10 @@ export class OrgMeshUsagePage {
       readFileSync(
         resolve(
           process.cwd(),
-          "../contracts/orgmesh-enterprise/fixtures/usage-summary.json"
+          "../contracts/orgmesh-enterprise/fixtures/usage-summary.json",
         ),
-        "utf8"
-      )
+        "utf8",
+      ),
     ).summary;
   }
 
@@ -45,7 +40,7 @@ export class OrgMeshUsagePage {
     const response = await this.page.request.get(`${API}/context`);
     expect(
       response.ok(),
-      "Use an existing authenticated full-admin session in the isolated app."
+      "Use an existing authenticated full-admin session in the isolated app.",
     ).toBeTruthy();
     const context: EnterpriseContext = await response.json();
     this.actorId = context.user_id;
@@ -58,7 +53,7 @@ export class OrgMeshUsagePage {
           usage_enabled: this.enabled,
           static_branding_version: 1,
         },
-      })
+      }),
     );
     await this.page.route(`**${API}/context`, (route) =>
       route.fulfill({
@@ -67,7 +62,7 @@ export class OrgMeshUsagePage {
           user_id: this.actorId,
           tenant_id: this.tenantId,
         },
-      })
+      }),
     );
     await this.page.route(`**${API}/usage/summary?**`, (route) => {
       if (this.scenario === "outage")
@@ -96,7 +91,7 @@ export class OrgMeshUsagePage {
           coverage: available ? { from: collection, to: end } : null,
           published_at: available
             ? new Date(
-                Date.now() - (this.scenario === "stale" ? 300000 : 0)
+                Date.now() - (this.scenario === "stale" ? 300000 : 0),
               ).toISOString()
             : null,
           revision: available ? this.revision : 0,
@@ -184,35 +179,37 @@ export class OrgMeshUsagePage {
     await expect(list).toContainText("Attributed system");
     await expect(list).toContainText("Unattributed system");
     await expect(
-      this.page.getByText(/0 may mean missing pricing/)
+      this.page.getByText(/0 may mean missing pricing/),
     ).toBeVisible();
     await expect(this.page.getByText(/Published coverage/)).toBeVisible();
   }
   async expectGroup(label: "Example model" | "Example flow") {
     await expect(
-      this.page.getByRole("list", { name: "Usage groups" })
+      this.page.getByRole("list", { name: "Usage groups" }),
     ).toContainText(label);
   }
   async expectUnavailable() {
-    await expect(this.page.getByRole("alert")).toContainText(
-      "No published usage snapshot"
-    );
     await expect(
-      this.page.getByRole("list", { name: "Usage groups" })
+      this.page
+        .getByRole("alert")
+        .filter({ hasText: "No published usage snapshot" }),
+    ).toContainText("No published usage snapshot");
+    await expect(
+      this.page.getByRole("list", { name: "Usage groups" }),
     ).toBeHidden();
   }
   async expectWaiting() {
     await expect(
-      this.page.getByText(/Waiting for the first full UTC day/)
+      this.page.getByText(/Waiting for the first full UTC day/),
     ).toBeVisible();
     await expect(
-      this.page.getByRole("list", { name: "Usage groups" })
+      this.page.getByRole("list", { name: "Usage groups" }),
     ).toBeHidden();
     await expect(this.page.getByText(/Collection starts:/)).toBeVisible();
   }
   async expectEmpty() {
     await expect(
-      this.page.getByText("No usage in this published range.", { exact: true })
+      this.page.getByText("No usage in this published range.", { exact: true }),
     ).toBeVisible();
     await expect(this.page.getByText(/Published coverage/)).toBeVisible();
   }
@@ -221,19 +218,21 @@ export class OrgMeshUsagePage {
     await this.expectReady();
   }
   async expectRangeError() {
-    await expect(this.page.getByRole("alert")).toContainText(
-      "most recent 90 UTC dates"
-    );
+    await expect(
+      this.page
+        .getByRole("alert")
+        .filter({ hasText: "most recent 90 UTC dates" }),
+    ).toContainText("most recent 90 UTC dates");
   }
   async expectDisabled() {
     await expect(
-      this.page.getByText("This feature is disabled.", { exact: true })
+      this.page.getByText("This feature is disabled.", { exact: true }),
     ).toBeVisible();
     await expect(
-      this.page.getByLabel("Start date (UTC)", { exact: true })
+      this.page.getByLabel("Start date (UTC)", { exact: true }),
     ).toBeHidden();
     await expect(
-      this.page.getByRole("button", { name: "Apply dates", exact: true })
+      this.page.getByRole("button", { name: "Apply dates", exact: true }),
     ).toBeHidden();
   }
 }
